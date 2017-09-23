@@ -1,11 +1,11 @@
 # Georgian (ka_GE) word list
 
-[Download TXT file](ka_GE.txt)
+[Download TXT file](/akalongman/geo-words/raw/master/ka_GE.txt)
 
 ## Data sources
 
 - Kevin Scannell (http://crubadan.org/languages/ka, CC-BY 4.0) 
-- Georgian eBooks/sites (crawler will be published soon)
+- Georgian eBooks/websites (crawler will be published soon)
 
 ## TODO
 
