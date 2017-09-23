@@ -5,6 +5,7 @@
 ## Data sources
 
 - Kevin Scannell (http://crubadan.org/languages/ka, CC-BY 4.0) 
+- National Parliamentary Library of Georgia (http://www.nplg.gov.ge/gwdict/index.php)
 - Georgian eBooks/websites (crawler will be published soon)
 
 ## TODO
