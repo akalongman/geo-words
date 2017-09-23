@@ -1,6 +1,7 @@
 # Georgian (ka_GE) word list
 
-[Download TXT file](https://github.com/akalongman/geo-words/raw/master/ka_GE.txt)
+Download in [DIC](https://github.com/akalongman/geo-words/raw/master/dicts/ka_GE.dic)
+[TXT](https://github.com/akalongman/geo-words/raw/master/dicts/ka_GE.txt)
 
 ## Data sources
 
