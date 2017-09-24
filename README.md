@@ -14,7 +14,7 @@ Download in:
 
 Crawler is written on PHP uses MySQL as a database and source placed under `src` folder.
 
-Before running the script should be configured database and imported file `data/structure.sql`. 
+Before running the script should be configured database and imported file `structure.sql`. 
 
 After that rename file `.env.example` to `.env` and specify database credentials.
 
