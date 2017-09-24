@@ -14,5 +14,6 @@ $application = new Application('Crawler', '1.0');
 
 $application->add(new Lib\Commands\CrawlCommand());
 $application->add(new Lib\Commands\ImportCommand());
+$application->add(new Lib\Commands\ExportCommand());
 
 $application->run();

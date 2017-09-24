@@ -92,7 +92,7 @@ class CrawlObserver implements BaseCrawlObserver
 
     private function parseGeorgianWords(string $content): array
     {
-        preg_match_all('#\b([აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ-]{2,})\b#isu', $content, $matches);
+        preg_match_all('#\b([აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ-]{2,})\b#u', $content, $matches);
 
         if (empty($matches[1])) {
             return [];
