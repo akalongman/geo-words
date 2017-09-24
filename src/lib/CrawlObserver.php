@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Lib;
 
+use Carbon\Carbon;
+use PDO;
 use Psr\Http\Message\StreamInterface;
 use Spatie\Crawler\CrawlObserver as BaseCrawlObserver;
 use Spatie\Crawler\Url;
@@ -12,20 +14,24 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class CrawlObserver implements BaseCrawlObserver
 {
+    private $crawl_id;
+
     private $output;
 
     private $input;
 
     private $file;
 
-    private $words = [];
-
     private $start_time;
     private $start_memory;
     private $fs;
 
-    public function __construct(InputInterface $input, OutputInterface $output)
+    /** @var \PDO */
+    private $db;
+
+    public function __construct(int $crawl_id, InputInterface $input, OutputInterface $output)
     {
+        $this->crawl_id = $crawl_id;
         $this->output = $output;
         $this->input = $input;
         $this->fs = new Filesystem();
@@ -39,13 +45,24 @@ class CrawlObserver implements BaseCrawlObserver
         $this->file = $file;
     }
 
+    public function setDatabase(PDO $db): void
+    {
+        $this->db = $db;
+    }
+
     public function willCrawl(Url $url)
     {
+
     }
 
     public function hasBeenCrawled(Url $url, $response, Url $foundOn = null)
     {
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
+        if (! $response) {
+            $this->output->writeln('<error>Response is empty</error>');
+
+            return;
+        }
 
         $this->process($response->getBody());
     }
@@ -54,18 +71,16 @@ class CrawlObserver implements BaseCrawlObserver
     {
         $this->output->writeln('- - -');
         $this->output->writeln('<info>Crawling is finished</info>');
-        $this->words = $this->readWordsFile();
+        $words = $this->getWords();
 
         $memory = $this->getMemoryUsage() - $this->start_memory;
-        $this->output->writeln('<info>Total Words:</info> <comment>' . count($this->words) . '</comment>');
+        $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
         $this->output->writeln('<info>Total Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
     }
 
     private function process(StreamInterface $stream): void
     {
         $content = $stream->getContents();
-
-        $this->words = $this->readWordsFile();
 
         $words = $this->parseGeorgianWords($content);
 
@@ -78,24 +93,34 @@ class CrawlObserver implements BaseCrawlObserver
         $this->output->writeln('- - -');
     }
 
-    private function readWordsFile(): array
-    {
-        if (! $this->fs->exists($this->file)) {
-            return [];
-        }
-        $words = file($this->file);
-
-        return $words;
-    }
-
     private function saveWords(array $words): void
     {
         if (empty($words)) {
             return;
         }
 
-        $content = "\n" . implode("\n", $words);
-        $this->fs->appendToFile($this->file, $content);
+        $date = Carbon::now();
+
+        $values = [];
+        $inserts = [];
+        foreach ($words as $word) {
+            $values[] = '(?, ?, ?, ?, ?)';
+            $inserts[] = $word;
+            $inserts[] = $this->crawl_id;
+            $inserts[] = 1;
+            $inserts[] = $date;
+            $inserts[] = $date;
+        }
+        $values = implode(', ', $values);
+
+        $st = $this->db->prepare('INSERT INTO `words`
+                (`word`, `crawl_id`, `occurrences`, `created_at`, `updated_at`)
+                VALUES
+                ' . $values . '
+                ON DUPLICATE KEY UPDATE `occurrences`=`occurrences`+1, `updated_at`="' . $date . '"
+            ');
+
+        $st->execute($inserts);
     }
 
     private function parseGeorgianWords(string $content): array
@@ -124,9 +149,6 @@ class CrawlObserver implements BaseCrawlObserver
         if ($word === '--') {
             return false;
         }
-        if (in_array($word, $this->words)) {
-            return false;
-        }
 
         return true;
     }
@@ -139,5 +161,14 @@ class CrawlObserver implements BaseCrawlObserver
     private function getMicroTime(): float
     {
         return microtime(true);
+    }
+
+    private function getWords(): array
+    {
+        $stmt = $this->db->prepare('SELECT * FROM `words` WHERE `crawl_id`=' . $this->crawl_id);
+        $stmt->execute();
+        $words = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $words;
     }
 }
