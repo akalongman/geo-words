@@ -1,0 +1,24 @@
+{
+    "name": "akalongman/geo-words-crawler",
+    "description": "Crawler for geo words",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Avtandil Kikabidze",
+            "email": "akalongman@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "spatie/crawler": "^2.3",
+        "symfony/console": "^3.3",
+        "symfony/var-dumper": "^3.3",
+        "symfony/filesystem": "^3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lib\\": "lib/"
+        }
+    }
+}
