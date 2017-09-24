@@ -52,7 +52,7 @@ class CrawlObserver implements BaseCrawlObserver
 
     public function finishedCrawling()
     {
-        $this->output->writeln('<info>- - -</info> <comment>');
+        $this->output->writeln('- - -');
         $this->output->writeln('<info>Crawling is finished</info>');
         $this->words = $this->readWordsFile();
 
@@ -75,7 +75,7 @@ class CrawlObserver implements BaseCrawlObserver
 
         $memory = $this->getMemoryUsage() - $this->start_memory;
         $this->output->writeln('<info>Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
-        $this->output->writeln('<info>- - -</info> <comment>');
+        $this->output->writeln('- - -');
     }
 
     private function readWordsFile(): array
