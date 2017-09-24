@@ -23,6 +23,9 @@
         "nesbot/carbon": "^1.22"
     },
     "autoload": {
+        "files": [
+            "helpers.php"
+        ],
         "psr-4": {
             "Lib\\": "lib/"
         }
