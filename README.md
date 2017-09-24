@@ -8,7 +8,19 @@ Download in:
 
 - Kevin Scannell (http://crubadan.org/languages/ka, CC-BY 4.0) 
 - National Parliamentary Library of Georgia (http://www.nplg.gov.ge/gwdict/index.php)
-- Georgian eBooks/websites (crawler will be published soon)
+- Other Georgian eBooks/websites ([Crawler](#crawler))
+
+## Crawler
+
+Crawler is written on PHP uses MySQL as a database and source placed under `src` folder.
+
+Before running the script should be configured database and imported file `dump.sql`. 
+
+After that rename file `.env.example` to `.env` and specify database credentials.
+
+Usage: `php cmd crawl "http://www.nplg.gov.ge/gwdict/index.php"`
+
+Help for options: `php cmd help crawl`
 
 ## TODO
 
