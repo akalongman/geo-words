@@ -67,7 +67,7 @@ class Database
         $inserts = [];
         foreach ($words as $word) {
             $values[] = '(?, ?, ?, ?, ?)';
-            $inserts[] = $word;
+            $inserts[] = trim($word);
             $inserts[] = $crawl_id;
             $inserts[] = 1;
             $inserts[] = $date;
