@@ -13,5 +13,6 @@ container()->bind('database', Lib\Database::class, true);
 $application = new Application('Crawler', '1.0');
 
 $application->add(new Lib\Commands\CrawlCommand());
+$application->add(new Lib\Commands\ImportCommand());
 
 $application->run();
