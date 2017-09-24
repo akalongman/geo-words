@@ -3,51 +3,28 @@ declare(strict_types=1);
 
 namespace Lib;
 
-use Carbon\Carbon;
-use PDO;
 use Psr\Http\Message\StreamInterface;
 use Spatie\Crawler\CrawlObserver as BaseCrawlObserver;
 use Spatie\Crawler\Url;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Filesystem\Filesystem;
 
 class CrawlObserver implements BaseCrawlObserver
 {
-    private $crawl_id;
-
     private $output;
 
     private $input;
 
-    private $file;
-
     private $start_time;
     private $start_memory;
-    private $fs;
 
-    /** @var \PDO */
-    private $db;
-
-    public function __construct(int $crawl_id, InputInterface $input, OutputInterface $output)
+    public function __construct(InputInterface $input, OutputInterface $output)
     {
-        $this->crawl_id = $crawl_id;
         $this->output = $output;
         $this->input = $input;
-        $this->fs = new Filesystem();
 
         $this->start_time = $this->getMicroTime();
         $this->start_memory = $this->getMemoryUsage();
-    }
-
-    public function setFile(string $file): void
-    {
-        $this->file = $file;
-    }
-
-    public function setDatabase(PDO $db): void
-    {
-        $this->db = $db;
     }
 
     public function willCrawl(Url $url)
@@ -71,7 +48,12 @@ class CrawlObserver implements BaseCrawlObserver
     {
         $this->output->writeln('- - -');
         $this->output->writeln('<info>Crawling is finished</info>');
-        $words = $this->getWords();
+        /** @var \Lib\Database $database */
+        $database = container()->get('database');
+
+        /** @var array $crawl_record */
+        $crawl_record = container()->get('crawl_record');
+        $words = $database->getWords($crawl_record['id']);
 
         $memory = $this->getMemoryUsage() - $this->start_memory;
         $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
@@ -99,28 +81,13 @@ class CrawlObserver implements BaseCrawlObserver
             return;
         }
 
-        $date = Carbon::now();
+        /** @var \Lib\Database $database */
+        $database = container()->get('database');
 
-        $values = [];
-        $inserts = [];
-        foreach ($words as $word) {
-            $values[] = '(?, ?, ?, ?, ?)';
-            $inserts[] = $word;
-            $inserts[] = $this->crawl_id;
-            $inserts[] = 1;
-            $inserts[] = $date;
-            $inserts[] = $date;
-        }
-        $values = implode(', ', $values);
+        /** @var array $crawl_record */
+        $crawl_record = container()->get('crawl_record');
 
-        $st = $this->db->prepare('INSERT INTO `words`
-                (`word`, `crawl_id`, `occurrences`, `created_at`, `updated_at`)
-                VALUES
-                ' . $values . '
-                ON DUPLICATE KEY UPDATE `occurrences`=`occurrences`+1, `updated_at`="' . $date . '"
-            ');
-
-        $st->execute($inserts);
+        $database->saveWords($crawl_record['id'], $words);
     }
 
     private function parseGeorgianWords(string $content): array
@@ -161,14 +128,5 @@ class CrawlObserver implements BaseCrawlObserver
     private function getMicroTime(): float
     {
         return microtime(true);
-    }
-
-    private function getWords(): array
-    {
-        $stmt = $this->db->prepare('SELECT * FROM `words` WHERE `crawl_id`=' . $this->crawl_id);
-        $stmt->execute();
-        $words = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return $words;
     }
 }

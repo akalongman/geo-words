@@ -3,14 +3,10 @@ declare(strict_types=1);
 
 namespace Lib\Commands;
 
-use Carbon\Carbon;
-use Dotenv\Dotenv;
 use GuzzleHttp\RequestOptions;
-use InvalidArgumentException;
 use Lib\CrawlObserver;
 use Lib\Profiles\DomainCrawlProfile;
 use Lib\Profiles\UrlSubsetProfile;
-use PDO;
 use Spatie\Crawler\CrawlAllUrls;
 use Spatie\Crawler\Crawler;
 use Spatie\Crawler\CrawlInternalUrls;
@@ -100,17 +96,22 @@ class CrawlCommand extends Command
                 break;
         }
 
-        $database = $this->createDatabaseConnection();
+        $container = container();
+        /** @var \Lib\Database $database */
+        $database = $container->get('database');
 
         if (! $crawl_id) {
-            $crawl_id = $this->createCrawlerRecord($database, $url);
-        } else {
-            $this->checkCrawlerRecord($database, $crawl_id);
+            $crawl_id = $database->createCrawlerRecord($url);
         }
+
+        $crawl_record = $database->getCrawlerRecord($crawl_id);
+        $container->bind('crawl_record', function () use ($crawl_record) {
+            return $crawl_record;
+        });
+
         $output->writeln('<info>Crawl ID:</info> <comment>' . $crawl_id . '</comment>');
 
-        $observer = new CrawlObserver($crawl_id, $input, $output);
-        $observer->setDatabase($database);
+        $observer = new CrawlObserver($input, $output);
 
         $crawler->setConcurrency($concurrency);
         $crawler->setCrawlObserver($observer);
@@ -120,50 +121,5 @@ class CrawlCommand extends Command
         $crawler->startCrawling($url);
 
         return 0;
-    }
-
-    private function createDatabaseConnection(): PDO
-    {
-        $this->loadConfig();
-
-        $dsn = 'mysql:host=' . env('DB_HOST') . ';dbname=' . env('DB_NAME');
-        $options = [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . env('DB_ENCODING', 'utf8mb4')];
-        $pdo = new PDO($dsn, env('DB_USER'), env('DB_PASSWORD'), $options);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        return $pdo;
-    }
-
-    private function loadConfig(): void
-    {
-        $dotenv = new Dotenv(getcwd(), '.env');
-        $dotenv->load();
-    }
-
-    private function createCrawlerRecord(PDO $database, string $url): int
-    {
-        $st = $database->prepare('INSERT INTO `crawls`
-                (`url`, `created_at`)
-                VALUES
-                (:url, :created_at);
-            ');
-
-        $st->bindValue(':url', $url);
-        $st->bindValue(':created_at', Carbon::now());
-        $st->execute();
-
-        return (int) $database->lastInsertId();
-    }
-
-    private function checkCrawlerRecord(PDO $database, int $crawl_id): array
-    {
-        $stmt = $database->prepare('SELECT * FROM `crawls` WHERE `id`=' . $crawl_id . ' LIMIT 1');
-        $stmt->execute();
-        $crawl = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (empty($crawl)) {
-            throw new InvalidArgumentException('Crawl process with id ' . $crawl_id . ' does not found');
-        }
-
-        return $crawl;
     }
 }

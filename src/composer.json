@@ -17,10 +17,10 @@
         "symfony/console": "^3.3",
         "symfony/var-dumper": "^3.3",
         "symfony/filesystem": "^3.3",
-        "symfony/dependency-injection": "^3.3",
         "monolog/monolog": "^1.23",
         "vlucas/phpdotenv": "^2.4",
-        "nesbot/carbon": "^1.22"
+        "nesbot/carbon": "^1.22",
+        "illuminate/container": "^5.5"
     },
     "autoload": {
         "files": [

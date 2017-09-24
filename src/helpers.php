@@ -1,6 +1,15 @@
 <?php
 declare(strict_types=1);
 
+use Illuminate\Container\Container;
+
+if (! function_exists('container')) {
+    function container(): Container
+    {
+        return Container::getInstance();
+    }
+}
+
 if (! function_exists('env')) {
     /**
      * Gets the value of an environment variable.
