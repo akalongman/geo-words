@@ -23,7 +23,7 @@ class CrawlCommand extends Command
     private const PROFILE_DOMAIN = 'domain';
     private const PROFILE_SUBSET = 'subset';
 
-    private const CONCURRENCY_DEFAULT = 1;
+    private const CONCURRENCY_DEFAULT = 10;
 
     protected function configure()
     {
