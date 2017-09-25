@@ -46,9 +46,13 @@ class Database
         return $crawl;
     }
 
-    public function getWords(int $crawl_id): array
+    public function getWords(int $crawl_id, int $occurrence): array
     {
-        $stmt = $this->db->prepare('SELECT * FROM `words` WHERE `crawl_id`=' . $crawl_id);
+        $sql = 'SELECT * FROM `words` WHERE `crawl_id`=' . $crawl_id;
+        if ($occurrence) {
+            $sql .= ' AND `occurrences` >= ' . $occurrence;
+        }
+        $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $words = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

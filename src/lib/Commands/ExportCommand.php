@@ -22,6 +22,7 @@ class ExportCommand extends Command
             ->setHelp('This command allows to import words in to database')
             ->addArgument('path', InputArgument::REQUIRED, 'Path for exporting a file')
             ->addOption('crawl_id', 'cid', InputOption::VALUE_REQUIRED, 'The crawl process ID for adding')
+            ->addOption('min_occurrence', 'o', InputOption::VALUE_REQUIRED, 'The minimum amount for occurrence for export')
             ->addOption('format', 'f', InputOption::VALUE_OPTIONAL, 'File format for exporting (sql, txt, dic)');
     }
 
@@ -34,6 +35,7 @@ class ExportCommand extends Command
         if (! is_dir($folder_path)) {
             throw new InvalidArgumentException('Folder ' . $folder_path . ' does not found');
         }
+        $min_occurrence = (int) $input->getOption('min_occurrence');
 
         /** @var \Lib\Database $database */
         $database = container()->get('database');
@@ -42,32 +44,34 @@ class ExportCommand extends Command
         $database->getCrawlerRecord($crawl_id);
 
         $output->writeln('<info>Start exporting of crawl ID:</info> <comment>' . $crawl_id . '</comment>');
+        if ($min_occurrence) {
+            $output->writeln('<info>Minimum occurrences:</info> <comment>' . $min_occurrence . '</comment>');
+        }
 
-
-        $words = $database->getWords($crawl_id);
+        $words = $database->getWords($crawl_id, $min_occurrence);
         $output->writeln('<info>Words found in the database:</info> <comment>' . count($words) . '</comment>');
-
-
-        die;
-
 
 
         $format = (int) $input->getOption('format');
         switch($format) {
-            case self::FORMAT_SQL;
-
+            default;
+                $this->exportToTxt($path, $words);
 
                 break;
         }
 
-
-        $words = file($file_path);
-        $output->writeln('<info>Words found:</info> <comment>' . count($words) . '</comment>');
-
-        $database->saveWords($crawl_id, $words);
-
         $output->writeln('<info>Words imported successfully</info>');
 
         return 0;
+    }
+
+    private function exportToTxt(string $path, array $words)
+    {
+        $file = realpath($path).'/ka_GE.txt';
+
+        $list = array_column($words, 'word');
+        sort($list);
+
+        file_put_contents($file, implode("\n", $list));
     }
 }
