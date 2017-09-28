@@ -46,7 +46,6 @@ class CrawlObserver implements BaseCrawlObserver
 
     public function finishedCrawling()
     {
-        $this->output->writeln('- - -');
         $this->output->writeln('<info>Crawling is finished</info>');
         /** @var \Lib\Database $database */
         $database = container()->get('database');
