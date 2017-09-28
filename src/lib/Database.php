@@ -46,7 +46,7 @@ class Database
         return $crawl;
     }
 
-    public function getWords(int $crawl_id, int $occurrence): array
+    public function getWords(int $crawl_id, int $occurrence = 0): array
     {
         $sql = 'SELECT * FROM `words` WHERE `crawl_id`=' . $crawl_id;
         if ($occurrence) {

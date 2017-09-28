@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "9400c9831ec66e79cedf1ddd8a019c6a",
+    "content-hash": "e3bd554d110aa1fe85acc48b39a76f81",
     "packages": [
         {
             "name": "doctrine/instantiator",
@@ -715,6 +715,42 @@
                 "time"
             ],
             "time": "2017-01-16T07:55:07+00:00"
+        },
+        {
+            "name": "nicmart/tree",
+            "version": "v0.2.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nicmart/Tree.git",
+                "reference": "0616b54bb49938e1a816141d7943db48ebf76938"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nicmart/Tree/zipball/0616b54bb49938e1a816141d7943db48ebf76938",
+                "reference": "0616b54bb49938e1a816141d7943db48ebf76938",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Tree\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolò Martini",
+                    "email": "nicmartnic@gmail.com"
+                }
+            ],
+            "description": "A basic but flexible php tree data structure and a fluent tree builder implementation.",
+            "time": "2015-08-20T20:50:35+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -2175,16 +2211,16 @@
         },
         {
             "name": "spatie/browsershot",
-            "version": "2.4.0",
+            "version": "2.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/browsershot.git",
-                "reference": "ec9a95a64b1e35230d8e7bee8d01aba367e36d30"
+                "reference": "cb7a4eee01e59add55455dbf6f00e9e1735cb2ca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/browsershot/zipball/ec9a95a64b1e35230d8e7bee8d01aba367e36d30",
-                "reference": "ec9a95a64b1e35230d8e7bee8d01aba367e36d30",
+                "url": "https://api.github.com/repos/spatie/browsershot/zipball/cb7a4eee01e59add55455dbf6f00e9e1735cb2ca",
+                "reference": "cb7a4eee01e59add55455dbf6f00e9e1735cb2ca",
                 "shasum": ""
             },
             "require": {
@@ -2227,24 +2263,25 @@
                 "screenshot",
                 "webpage"
             ],
-            "time": "2017-09-21T19:23:39+00:00"
+            "time": "2017-09-27T15:05:31+00:00"
         },
         {
             "name": "spatie/crawler",
-            "version": "2.3.0",
+            "version": "2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/crawler.git",
-                "reference": "957c9f35d223f0c8e57e90d6f4dbb357abae617f"
+                "reference": "049b93b5406187ed6c47908f8c7829b719fa6dc7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/crawler/zipball/957c9f35d223f0c8e57e90d6f4dbb357abae617f",
-                "reference": "957c9f35d223f0c8e57e90d6f4dbb357abae617f",
+                "url": "https://api.github.com/repos/spatie/crawler/zipball/049b93b5406187ed6c47908f8c7829b719fa6dc7",
+                "reference": "049b93b5406187ed6c47908f8c7829b719fa6dc7",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "^6.3",
+                "nicmart/tree": "^0.2.7",
                 "php": "^7.0",
                 "spatie/browsershot": "^2.4",
                 "symfony/dom-crawler": "^3.0",
@@ -2283,7 +2320,7 @@
                 "spatie",
                 "website"
             ],
-            "time": "2017-09-21T21:09:30+00:00"
+            "time": "2017-09-27T19:49:13+00:00"
         },
         {
             "name": "spatie/image",
@@ -2602,76 +2639,6 @@
             "description": "Symfony Debug Component",
             "homepage": "https://symfony.com",
             "time": "2017-09-01T13:23:39+00:00"
-        },
-        {
-            "name": "symfony/dependency-injection",
-            "version": "v3.3.9",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "e593f06dd90a81c7b70ac1c49862a061b0ec06d2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/e593f06dd90a81c7b70ac1c49862a061b0ec06d2",
-                "reference": "e593f06dd90a81c7b70ac1c49862a061b0ec06d2",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^5.5.9|>=7.0.8",
-                "psr/container": "^1.0"
-            },
-            "conflict": {
-                "symfony/config": "<3.3.1",
-                "symfony/finder": "<3.3",
-                "symfony/yaml": "<3.3"
-            },
-            "provide": {
-                "psr/container-implementation": "1.0"
-            },
-            "require-dev": {
-                "symfony/config": "~3.3",
-                "symfony/expression-language": "~2.8|~3.0",
-                "symfony/yaml": "~3.3"
-            },
-            "suggest": {
-                "symfony/config": "",
-                "symfony/expression-language": "For using expressions in service container configuration",
-                "symfony/finder": "For using double-star glob patterns or when GLOB_BRACE portability is required",
-                "symfony/proxy-manager-bridge": "Generate service proxies to lazy load them",
-                "symfony/yaml": ""
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.3-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\DependencyInjection\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony DependencyInjection Component",
-            "homepage": "https://symfony.com",
-            "time": "2017-09-05T20:39:38+00:00"
         },
         {
             "name": "symfony/dom-crawler",
@@ -3061,16 +3028,16 @@
         },
         {
             "name": "tightenco/collect",
-            "version": "v5.5.9",
+            "version": "v5.5.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tightenco/collect.git",
-                "reference": "e277d1983234706604115e86ea06998329c30c6e"
+                "reference": "dae85b18c6a2315645bca3dac37e3e408542efa8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tightenco/collect/zipball/e277d1983234706604115e86ea06998329c30c6e",
-                "reference": "e277d1983234706604115e86ea06998329c30c6e",
+                "url": "https://api.github.com/repos/tightenco/collect/zipball/dae85b18c6a2315645bca3dac37e3e408542efa8",
+                "reference": "dae85b18c6a2315645bca3dac37e3e408542efa8",
                 "shasum": ""
             },
             "require": {
@@ -3104,7 +3071,7 @@
                 "collection",
                 "laravel"
             ],
-            "time": "2017-09-20T17:15:11+00:00"
+            "time": "2017-09-25T17:13:51+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
