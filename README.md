@@ -2,7 +2,8 @@
 
 Download in: 
 [DIC](https://github.com/akalongman/geo-words/raw/master/dictionary/dic/ka_GE.dic) | 
-[TXT](https://github.com/akalongman/geo-words/raw/master/dictionary/txt/ka_GE.txt)
+[TXT](https://github.com/akalongman/geo-words/raw/master/dictionary/txt/ka_GE.txt) |
+[SQL](https://github.com/akalongman/geo-words/raw/master/dictionary/sql/ka_GE.sql)
 
 ## Data sources
 
@@ -12,7 +13,7 @@ Download in:
 
 ## Crawler
 
-Crawler is written on PHP uses MySQL as a database and source placed under `src` folder.
+Crawler is written on PHP uses MySQL as a database and source placed under `crawler` folder.
 
 Before running the script should be configured database and imported file `structure.sql`. 
 
