@@ -104,6 +104,7 @@ class Database
 
         $dsn = 'mysql:host=' . env('DB_HOST') . ';dbname=' . env('DB_NAME');
         $options = [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . env('DB_ENCODING', 'utf8mb4')];
+
         $pdo = new PDO($dsn, env('DB_USER'), env('DB_PASSWORD'), $options);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
