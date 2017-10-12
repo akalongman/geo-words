@@ -74,6 +74,17 @@ class Database
             return;
         }
 
+        $collection = collect($words);
+
+        $chunks = $collection->chunk(env('DB_INSERT_CHUNK_SIZE', 500));
+        /** @var \Illuminate\Support\Collection $chunk */
+        foreach ($chunks as $chunk) {
+            $this->insertWords($crawl_id, $chunk->toArray());
+        }
+    }
+
+    private function insertWords(int $crawl_id, array $words): void
+    {
         $date = Carbon::now();
 
         $values = [];
@@ -107,8 +118,6 @@ class Database
 
         $pdo = new PDO($dsn, env('DB_USER'), env('DB_PASSWORD'), $options);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        $pdo->query('SET GLOBAL max_allowed_packet=4*1024*1024');
 
         return $pdo;
     }
