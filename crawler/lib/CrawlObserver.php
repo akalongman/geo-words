@@ -47,9 +47,7 @@ class CrawlObserver implements BaseCrawlObserver
         switch ($content_type) {
             case 'application/pdf':
                 $content = $this->getContentsFromPdf($url);
-
                 break;
-
 
             default:
                 $content = $stream->getContents();
@@ -104,6 +102,8 @@ class CrawlObserver implements BaseCrawlObserver
         $text = (new Pdf())
             ->setPdf($path)
             ->text();
+
+        // @TODO: Delete $path
 
         return (string) $text;
     }
