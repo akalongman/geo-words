@@ -13,6 +13,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ExportCommand extends Command
 {
     private const FORMAT_SQL = 'sql';
+    private const FORMAT_TXT = 'txt';
+    private const FORMAT_DIC = 'dic';
 
     protected function configure()
     {
@@ -53,9 +55,20 @@ class ExportCommand extends Command
 
 
         $format = (int) $input->getOption('format');
-        switch($format) {
+        switch ($format) {
             default;
-                $this->exportToTxt($path, $words);
+            case self::FORMAT_TXT;
+                $this->exportToText($path, $words, 'txt');
+
+                break;
+
+            case self::FORMAT_DIC;
+                $this->exportToText($path, $words, 'dic');
+
+                break;
+
+            case self::FORMAT_SQL;
+                $this->exportToSql($path, $words);
 
                 break;
         }
@@ -65,13 +78,19 @@ class ExportCommand extends Command
         return 0;
     }
 
-    private function exportToTxt(string $path, array $words)
+    private function exportToText(string $path, array $words, string $ext)
     {
-        $file = realpath($path).'/ka_GE.txt';
+        $file = realpath($path) . '/ka_GE.txt';
 
         $list = array_column($words, 'word');
         sort($list);
 
         file_put_contents($file, implode("\n", $list));
     }
+
+    private function exportToSql(string $path, array $words)
+    {
+
+    }
+
 }
