@@ -20,7 +20,8 @@
         "monolog/monolog": "^1.23",
         "vlucas/phpdotenv": "^2.4",
         "nesbot/carbon": "^1.22",
-        "illuminate/container": "^5.5"
+        "illuminate/container": "^5.5",
+        "spatie/pdf-to-text": "^1.0"
     },
     "autoload": {
         "files": [
