@@ -108,6 +108,8 @@ class Database
         $pdo = new PDO($dsn, env('DB_USER'), env('DB_PASSWORD'), $options);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+        $pdo->query('SET GLOBAL max_allowed_packet=4*1024*1024');
+
         return $pdo;
     }
 
