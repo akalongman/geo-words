@@ -13,6 +13,11 @@ class Database
     /** @var \PDO */
     private $db;
 
+    public const SORT_OCCURRENCES_ASC = '`occurrences` ASC, `word` ASC';
+    public const SORT_OCCURRENCES_DESC = '`occurrences` DESC, `word` ASC';
+    public const SORT_WORD_ASC = '`word` ASC';
+    public const SORT_WORD_DESC = '`word` DESC';
+
     public function __construct()
     {
         $this->db = $this->createDatabaseConnection();
@@ -46,12 +51,16 @@ class Database
         return $crawl;
     }
 
-    public function getWords(int $crawl_id, int $occurrence = 0): array
+    public function getWords(int $crawl_id, int $occurrence = 0, string $sort = null): array
     {
         $sql = 'SELECT * FROM `words` WHERE `crawl_id`=' . $crawl_id;
         if ($occurrence) {
             $sql .= ' AND `occurrences` >= ' . $occurrence;
         }
+        if ($sort) {
+            $sql .= ' ORDER BY ' . $sort;
+        }
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $words = $stmt->fetchAll(PDO::FETCH_ASSOC);
