@@ -144,6 +144,9 @@ class CrawlObserver implements BaseCrawlObserver
 
         $words = [];
         foreach ($unique_words as $word) {
+            $word = preg_replace('#-{2,}#u', '-', $word);
+            $word = trim($word, " \t\n\r\0\x0B-");
+
             if (! $this->wordIsValid($word)) {
                 continue;
             }
@@ -155,7 +158,7 @@ class CrawlObserver implements BaseCrawlObserver
 
     private function wordIsValid(string $word): bool
     {
-        if ($word === '--') {
+        if (empty($word) || $word === '-') {
             return false;
         }
 
