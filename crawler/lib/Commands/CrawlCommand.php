@@ -33,7 +33,7 @@ class CrawlCommand extends Command
             ->setHelp('This command allows to crawl given url')
             ->addArgument('url', InputArgument::REQUIRED, 'The website url for crawling. If url contains &, entire url should be wrapped by quotes (")')
             ->addOption('concurrency', 'c', InputOption::VALUE_OPTIONAL, 'The concurrency. Default is ' . self::CONCURRENCY_DEFAULT)
-            ->addOption('crawl_id', 'cid', InputOption::VALUE_OPTIONAL, 'The crawl process ID for continue')
+            ->addOption('project-id', 'pid', InputOption::VALUE_OPTIONAL, 'The project ID for continue')
             ->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'The crawling profile. Values are: '
                 . PHP_EOL . self::PROFILE_INTERNAL . ' (default) - this profile will only crawl the internal urls on the pages of a host.'
                 . PHP_EOL . self::PROFILE_ALL . ' - this profile will crawl all urls on all pages including urls to an external site.'
@@ -48,7 +48,7 @@ class CrawlCommand extends Command
         $concurrency = $input->getOption('concurrency');
         $concurrency = $concurrency ? intval($concurrency) : 1;
         $profile = $input->getOption('profile');
-        $crawl_id = (int) $input->getOption('crawl_id');
+        $project_id = (int) $input->getOption('project-id');
 
         $output->writeln('<info>Start crawling of:</info> <comment>' . $url . '</comment>');
         $output->writeln('<info>Concurrency:</info> <comment>' . $concurrency . '</comment>');
@@ -100,18 +100,18 @@ class CrawlCommand extends Command
         /** @var \Lib\Database $database */
         $database = $container->get('database');
 
-        if (! $crawl_id) {
-            $crawl_id = $database->createCrawlerRecord($url);
+        if (! $project_id) {
+            $project_id = $database->createCrawlProject($url);
         }
 
-        $crawl_record = $database->getCrawlerRecord($crawl_id);
-        $container->bind('crawl_record', function () use ($crawl_record) {
-            return $crawl_record;
+        $crawl_project = $database->getCrawlProject($project_id);
+        $container->bind('crawl_project', function () use ($crawl_project) {
+            return $crawl_project;
         });
 
-        $output->writeln('<info>Crawl ID:</info> <comment>' . $crawl_id . '</comment>');
+        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $project_id . '</comment>');
 
-        $observer = new CrawlObserver($input, $output);
+        $observer = new CrawlObserver($input, $output, $crawl_project);
 
         $crawler->setConcurrency($concurrency);
         $crawler->setCrawlObserver($observer);

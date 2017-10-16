@@ -19,10 +19,14 @@ class CrawlObserver implements BaseCrawlObserver
     private $start_time;
     private $start_memory;
 
-    public function __construct(InputInterface $input, OutputInterface $output)
+    private $crawl_id;
+    private $crawl_project;
+
+    public function __construct(InputInterface $input, OutputInterface $output, array $crawl_project)
     {
         $this->output = $output;
         $this->input = $input;
+        $this->crawl_project = $crawl_project;
 
         $this->start_time = $this->getMicroTime();
         $this->start_memory = $this->getMemoryUsage();
@@ -30,14 +34,18 @@ class CrawlObserver implements BaseCrawlObserver
 
     public function willCrawl(Url $url)
     {
-
+        $database = $this->getDatabase();
+        $this->crawl_id = $database->createCrawlerRecord($this->crawl_project['id'], (string) $url);
     }
 
     public function hasBeenCrawled(Url $url, $response, Url $foundOn = null)
     {
+        $database = $this->getDatabase();
+
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
+            $database->updateCrawlerRecord($this->crawl_id, 2, 0, 'Response is empty');
 
             return;
         }
@@ -61,16 +69,17 @@ class CrawlObserver implements BaseCrawlObserver
     public function finishedCrawling()
     {
         $this->output->writeln('<info>Crawling is finished</info>');
-        /** @var \Lib\Database $database */
-        $database = container()->get('database');
 
-        /** @var array $crawl_record */
-        $crawl_record = container()->get('crawl_record');
-        $words = $database->getWords($crawl_record['id']);
+        $database = $this->getDatabase();
+
+        $crawl_project = $this->getCrawlProject();
+        $words = $database->getWords($crawl_project['id']);
+
 
         $memory = $this->getMemoryUsage() - $this->start_memory;
         $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
         $this->output->writeln('<info>Total Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
+
     }
 
     private function process(string $content): void
@@ -84,6 +93,9 @@ class CrawlObserver implements BaseCrawlObserver
         $memory = $this->getMemoryUsage() - $this->start_memory;
         $this->output->writeln('<info>Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
         $this->output->writeln('- - -');
+
+        $database = $this->getDatabase();
+        $database->updateCrawlerRecord($this->crawl_id, 1, count($words), '');
     }
 
     private function getContentsFromPdf(Url $url): string
@@ -114,13 +126,10 @@ class CrawlObserver implements BaseCrawlObserver
             return;
         }
 
-        /** @var \Lib\Database $database */
-        $database = container()->get('database');
+        $database = $this->getDatabase();
+        $crawl_project = $this->getCrawlProject();
 
-        /** @var array $crawl_record */
-        $crawl_record = container()->get('crawl_record');
-
-        $database->saveWords($crawl_record['id'], $words);
+        $database->saveWords($crawl_project['id'], $this->crawl_id, $words);
     }
 
     private function parseGeorgianWords(string $content): array
@@ -161,5 +170,15 @@ class CrawlObserver implements BaseCrawlObserver
     private function getMicroTime(): float
     {
         return microtime(true);
+    }
+
+    private function getDatabase(): Database
+    {
+        return container()->get('database');
+    }
+
+    private function getCrawlProject(): array
+    {
+        return container()->get('crawl_project');
     }
 }

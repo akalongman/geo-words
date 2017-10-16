@@ -23,19 +23,66 @@ class Database
         $this->db = $this->createDatabaseConnection();
     }
 
-    public function createCrawlerRecord(string $url): int
+    public function createCrawlProject(string $name = 'crawl'): int
     {
-        $st = $this->db->prepare('INSERT INTO `crawls`
-                (`url`, `created_at`)
+        $st = $this->db->prepare('INSERT INTO `projects`
+                (`name`, `created_at`)
                 VALUES
-                (:url, :created_at);
+                (:name, :created_at);
             ');
 
-        $st->bindValue(':url', $url);
+        $st->bindValue(':name', $name . ' ' . mt_rand(1, 1000));
         $st->bindValue(':created_at', Carbon::now());
         $st->execute();
 
         return (int) $this->db->lastInsertId();
+    }
+
+    public function getCrawlProject(int $project_id): array
+    {
+        $stmt = $this->db->prepare('SELECT * FROM `projects` WHERE `id`=' . $project_id . ' LIMIT 1');
+        $stmt->execute();
+        $project = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (empty($project)) {
+            throw new InvalidArgumentException('Crawl project with id ' . $project_id . ' does not found');
+        }
+        $project['id'] = (int) $project['id'];
+
+        return $project;
+    }
+
+    public function createCrawlerRecord(int $project_id, string $url): int
+    {
+        $st = $this->db->prepare('INSERT INTO `crawls`
+                (`project_id`, `url`, `status`, `created_at`, `updated_at`)
+                VALUES
+                (:project_id, :url, :status, :created_at, :updated_at);
+            ');
+
+        $st->bindValue(':project_id', $project_id);
+        $st->bindValue(':url', $url);
+        $st->bindValue(':status', 0);
+        $st->bindValue(':created_at', Carbon::now());
+        $st->bindValue(':updated_at', Carbon::now());
+        $st->execute();
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    public function updateCrawlerRecord(int $id, int $status, int $words, string $msg)
+    {
+        $st = $this->db->prepare('UPDATE `crawls` SET
+                `status`=:status, `words`=:words, `msg`=:msg, `updated_at`=:updated_at
+                WHERE `id`=' . $id . '
+                ;
+            ');
+
+        $st->bindValue(':status', $status);
+        $st->bindValue(':words', $words);
+        $st->bindValue(':msg', $msg);
+        $st->bindValue(':updated_at', Carbon::now());
+        $st->execute();
+
     }
 
     public function getCrawlerRecord(int $crawl_id): array
@@ -68,7 +115,7 @@ class Database
         return $words;
     }
 
-    public function saveWords(int $crawl_id, array $words): void
+    public function saveWords(int $project_id, int $crawl_id, array $words): void
     {
         if (empty($words)) {
             return;
@@ -79,19 +126,20 @@ class Database
         $chunks = $collection->chunk(env('DB_INSERT_CHUNK_SIZE', 500));
         /** @var \Illuminate\Support\Collection $chunk */
         foreach ($chunks as $chunk) {
-            $this->insertWords($crawl_id, $chunk->toArray());
+            $this->insertWords($project_id, $crawl_id, $chunk->toArray());
         }
     }
 
-    private function insertWords(int $crawl_id, array $words): void
+    private function insertWords(int $project_id, int $crawl_id, array $words): void
     {
         $date = Carbon::now();
 
         $values = [];
         $inserts = [];
         foreach ($words as $word) {
-            $values[] = '(?, ?, ?, ?, ?)';
+            $values[] = '(?, ?, ?, ?, ?, ?)';
             $inserts[] = trim($word);
+            $inserts[] = $project_id;
             $inserts[] = $crawl_id;
             $inserts[] = 1;
             $inserts[] = $date;
@@ -100,7 +148,7 @@ class Database
         $values = implode(', ', $values);
 
         $st = $this->db->prepare('INSERT INTO `words`
-                (`word`, `crawl_id`, `occurrences`, `created_at`, `updated_at`)
+                (`word`, `project_id`, `crawl_id`, `occurrences`, `created_at`, `updated_at`)
                 VALUES
                 ' . $values . '
                 ON DUPLICATE KEY UPDATE `occurrences`=`occurrences`+1, `updated_at`="' . $date . '"
