@@ -15,12 +15,12 @@ final class CreateCrawlsTable extends AbstractMigration
             ->addColumn('words', 'integer', ['signed' => false, 'default' => 0])
             ->addColumn('status', 'tinyinteger', ['signed' => false, 'default' => 0])
             ->addColumn('created_at', 'timestamp', ['null' => true, 'precision' => 3])
-            ->addColumn('update_at', 'timestamp', ['null' => true, 'precision' => 3])
+            ->addColumn('updated_at', 'timestamp', ['null' => true, 'precision' => 3])
             ->addForeignKey('project_id', 'projects', ['id'])
             ->create();
         $this->execute('ALTER TABLE `crawls` MODIFY COLUMN `created_at` TIMESTAMP(3)
             NULL DEFAULT CURRENT_TIMESTAMP(3)');
-        $this->execute('ALTER TABLE `crawls` MODIFY COLUMN `update_at` TIMESTAMP(3)
+        $this->execute('ALTER TABLE `crawls` MODIFY COLUMN `updated_at` TIMESTAMP(3)
             NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)');
     }
 }
