@@ -8,6 +8,8 @@ use Dotenv\Dotenv;
 use InvalidArgumentException;
 use PDO;
 
+use function getcwd;
+
 class Database
 {
     /** @var \PDO */
@@ -173,7 +175,7 @@ class Database
 
     private function loadConfig(): void
     {
-        $dot_env = new Dotenv(getcwd(), '.env');
-        $dot_env->load();
+        $dotEnv = Dotenv::createImmutable(getcwd(), '.env');
+        $dotEnv->load();
     }
 }

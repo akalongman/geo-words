@@ -1,67 +1,66 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Lib;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 use Spatie\Crawler\CrawlObserver as BaseCrawlObserver;
-use Spatie\Crawler\Url;
 use Spatie\PdfToText\Pdf;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CrawlObserver implements BaseCrawlObserver
+class CrawlObserver extends BaseCrawlObserver
 {
-    private $output;
+    private InputInterface $input;
+    private OutputInterface $output;
+    private float $startTime;
+    private int $startMemory;
+    private ?int $crawlId;
+    private array $crawlProject;
 
-    private $input;
-
-    private $start_time;
-    private $start_memory;
-
-    private $crawl_id;
-    private $crawl_project;
-
-    public function __construct(InputInterface $input, OutputInterface $output, array $crawl_project)
+    public function __construct(InputInterface $input, OutputInterface $output, array $crawlProject)
     {
         $this->output = $output;
         $this->input = $input;
-        $this->crawl_project = $crawl_project;
+        $this->crawlProject = $crawlProject;
 
-        $this->start_time = $this->getMicroTime();
-        $this->start_memory = $this->getMemoryUsage();
+        $this->startTime = $this->getMicroTime();
+        $this->startMemory = $this->getMemoryUsage();
     }
 
-    public function willCrawl(Url $url)
+    public function willCrawl(UriInterface $url)
     {
         $database = $this->getDatabase();
-        $this->crawl_id = $database->createCrawlerRecord($this->crawl_project['id'], (string) $url);
+        $this->crawlId = $database->createCrawlerRecord($this->crawlProject['id'], (string) $url);
     }
 
-    public function hasBeenCrawled(Url $url, $response, Url $foundOn = null)
+    public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null)
     {
         $database = $this->getDatabase();
 
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $database->updateCrawlerRecord($this->crawl_id, 2, 0, 'Response is empty');
+            $database->updateCrawlerRecord($this->crawlId, 2, 0, 'Response is empty');
 
             return;
         }
 
         $stream = $response->getBody();
-        $content_type = $response->getHeader('Content-Type')[0] ?? 'text';
-        switch ($content_type) {
+        $contentType = $response->getHeader('Content-Type')[0] ?? 'text';
+        switch ($contentType) {
             case 'application/pdf':
                 $content = $this->getContentsFromPdf($url);
                 break;
 
             default:
-                $content = $stream->getContents();
+                $content = (string) $stream;
                 break;
         }
-
 
         $this->process($content);
     }
@@ -75,11 +74,15 @@ class CrawlObserver implements BaseCrawlObserver
         $crawl_project = $this->getCrawlProject();
         $words = $database->getWords($crawl_project['id']);
 
-
-        $memory = $this->getMemoryUsage() - $this->start_memory;
+        $memory = $this->getMemoryUsage() - $this->startMemory;
         $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
         $this->output->writeln('<info>Total Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
 
+    }
+
+    public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null)
+    {
+        throw $requestException;
     }
 
     private function process(string $content): void
@@ -90,15 +93,15 @@ class CrawlObserver implements BaseCrawlObserver
 
         $this->output->writeln('<info>Words:</info> <comment>' . count($words) . '</comment>');
 
-        $memory = $this->getMemoryUsage() - $this->start_memory;
+        $memory = $this->getMemoryUsage() - $this->startMemory;
         $this->output->writeln('<info>Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
         $this->output->writeln('- - -');
 
         $database = $this->getDatabase();
-        $database->updateCrawlerRecord($this->crawl_id, 1, count($words), '');
+        $database->updateCrawlerRecord($this->crawlId, 1, count($words), '');
     }
 
-    private function getContentsFromPdf(Url $url): string
+    private function getContentsFromPdf(UriInterface $url): string
     {
         $url_str = (string) $url;
         $name = md5($url_str) . '.pdf';
@@ -129,7 +132,7 @@ class CrawlObserver implements BaseCrawlObserver
         $database = $this->getDatabase();
         $crawl_project = $this->getCrawlProject();
 
-        $database->saveWords($crawl_project['id'], $this->crawl_id, $words);
+        $database->saveWords($crawl_project['id'], $this->crawlId, $words);
     }
 
     private function parseGeorgianWords(string $content): array

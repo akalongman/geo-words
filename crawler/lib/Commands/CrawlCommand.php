@@ -61,6 +61,8 @@ class CrawlCommand extends Command
             RequestOptions::ALLOW_REDIRECTS => false,
         ]);
 
+        $crawler->ignoreRobots();
+        $crawler->acceptNofollowLinks();
         $crawler->doNotExecuteJavaScript();
 
         switch ($profile) {

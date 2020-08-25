@@ -3,20 +3,20 @@ declare(strict_types=1);
 
 namespace Lib\Profiles;
 
+use Psr\Http\Message\UriInterface;
 use Spatie\Crawler\CrawlProfile as BaseCrawlProfile;
-use Spatie\Crawler\Url;
 
-class DomainCrawlProfile implements BaseCrawlProfile
+class DomainCrawlProfile extends BaseCrawlProfile
 {
-    private $domain;
+    private string $domain;
 
     public function __construct(string $domain)
     {
         $this->domain = $domain;
     }
 
-    public function shouldCrawl(Url $url): bool
+    public function shouldCrawl(UriInterface $url): bool
     {
-        return substr($url->host, -2) === $this->domain;
+        return substr($url->getHost(), -2) === $this->domain;
     }
 }

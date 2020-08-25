@@ -3,19 +3,19 @@ declare(strict_types=1);
 
 namespace Lib\Profiles;
 
+use Psr\Http\Message\UriInterface;
 use Spatie\Crawler\CrawlProfile as BaseCrawlProfile;
-use Spatie\Crawler\Url;
 
-class UrlSubsetProfile implements BaseCrawlProfile
+class UrlSubsetProfile extends BaseCrawlProfile
 {
-    private $subset;
+    private string $subset;
 
     public function __construct(string $subset)
     {
         $this->subset = $subset;
     }
 
-    public function shouldCrawl(Url $url): bool
+    public function shouldCrawl(UriInterface $url): bool
     {
         return strpos((string) $url, $this->subset) !== false;
     }

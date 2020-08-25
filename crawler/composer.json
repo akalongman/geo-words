@@ -10,17 +10,17 @@
         }
     ],
     "require": {
-        "php": ">=7.1",
+        "php": ">=7.4",
         "ext-pdo": "*",
         "ext-pdo_mysql": "*",
-        "spatie/crawler": "^2.3",
-        "symfony/console": "^3.3",
-        "symfony/var-dumper": "^3.3",
-        "symfony/filesystem": "^3.3",
-        "monolog/monolog": "^1.23",
-        "vlucas/phpdotenv": "^2.4",
-        "nesbot/carbon": "^1.22",
-        "illuminate/container": "^5.5",
+        "spatie/crawler": "^4.7",
+        "symfony/console": "^5.1",
+        "symfony/var-dumper": "^5.1",
+        "symfony/filesystem": "^5.1",
+        "monolog/monolog": "^2.1",
+        "vlucas/phpdotenv": "^5.1",
+        "nesbot/carbon": "^2.39",
+        "illuminate/container": "^7.2",
         "spatie/pdf-to-text": "^1.0"
     },
     "autoload": {
