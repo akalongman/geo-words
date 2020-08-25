@@ -94,6 +94,7 @@ class Database
             throw new InvalidArgumentException('Crawl process with id ' . $crawl_id . ' does not found');
         }
         $crawl['id'] = (int) $crawl['id'];
+        $crawl['project_id'] = (int) $crawl['project_id'];
 
         return $crawl;
     }

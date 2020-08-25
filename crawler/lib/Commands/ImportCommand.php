@@ -38,14 +38,14 @@ class ImportCommand extends Command
         if (! $crawl_id) {
             $crawl_id = $database->createCrawlerRecord($file_path);
         }
-        $database->getCrawlerRecord($crawl_id);
+        $crawl = $database->getCrawlerRecord($crawl_id);
 
         $output->writeln('<info>Start importing of:</info> <comment>' . $file . '</comment>');
 
         $words = file($file_path);
         $output->writeln('<info>Words found:</info> <comment>' . count($words) . '</comment>');
 
-        $database->saveWords($crawl_id, $words);
+        $database->saveWords($crawl['project_id'], $crawl_id, $words);
 
         $output->writeln('<info>Words imported successfully</info>');
 
