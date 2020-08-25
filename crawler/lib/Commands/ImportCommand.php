@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ImportCommand extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('import')
@@ -22,30 +22,30 @@ class ImportCommand extends Command
             ->addOption('crawl_id', 'cid', InputOption::VALUE_OPTIONAL, 'The crawl process ID for adding');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $file = $input->getArgument('file');
-        $file_path = realpath(getcwd() . '/' . $file);
+        $filePath = realpath(getcwd() . '/' . $file);
 
-        if (! file_exists($file_path)) {
+        if (! file_exists($filePath)) {
             throw new InvalidArgumentException('File ' . $file . ' does not found');
         }
 
         /** @var \Lib\Database $database */
         $database = container()->get('database');
 
-        $crawl_id = (int) $input->getOption('crawl_id');
-        if (! $crawl_id) {
-            $crawl_id = $database->createCrawlerRecord($file_path);
+        $crawlId = (int) $input->getOption('crawl_id');
+        if (! $crawlId) {
+            $crawlId = $database->createCrawlerRecord($filePath);
         }
-        $crawl = $database->getCrawlerRecord($crawl_id);
+        $crawl = $database->getCrawlerRecord($crawlId);
 
         $output->writeln('<info>Start importing of:</info> <comment>' . $file . '</comment>');
 
-        $words = file($file_path);
+        $words = file($filePath);
         $output->writeln('<info>Words found:</info> <comment>' . count($words) . '</comment>');
 
-        $database->saveWords($crawl['project_id'], $crawl_id, $words);
+        $database->saveWords($crawl['project_id'], $crawlId, $words);
 
         $output->writeln('<info>Words imported successfully</info>');
 

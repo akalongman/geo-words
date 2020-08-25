@@ -25,7 +25,7 @@ class CrawlCommand extends Command
 
     private const CONCURRENCY_DEFAULT = 10;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('crawl')
@@ -42,13 +42,13 @@ class CrawlCommand extends Command
             ->addOption('subset', 's', InputOption::VALUE_OPTIONAL, 'URL subset for matching parse urls');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $url = $input->getArgument('url');
         $concurrency = $input->getOption('concurrency');
         $concurrency = $concurrency ? intval($concurrency) : 1;
         $profile = $input->getOption('profile');
-        $project_id = (int) $input->getOption('project-id');
+        $projectId = (int) $input->getOption('project-id');
 
         $output->writeln('<info>Start crawling of:</info> <comment>' . $url . '</comment>');
         $output->writeln('<info>Concurrency:</info> <comment>' . $concurrency . '</comment>');
@@ -102,18 +102,18 @@ class CrawlCommand extends Command
         /** @var \Lib\Database $database */
         $database = $container->get('database');
 
-        if (! $project_id) {
-            $project_id = $database->createCrawlProject($url);
+        if (! $projectId) {
+            $projectId = $database->createCrawlProject($url);
         }
 
-        $crawl_project = $database->getCrawlProject($project_id);
-        $container->bind('crawl_project', function () use ($crawl_project) {
-            return $crawl_project;
+        $crawlProject = $database->getCrawlProject($projectId);
+        $container->bind('crawl_project', function () use ($crawlProject) {
+            return $crawlProject;
         });
 
-        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $project_id . '</comment>');
+        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $projectId . '</comment>');
 
-        $observer = new CrawlObserver($input, $output, $crawl_project);
+        $observer = new CrawlObserver($input, $output, $crawlProject);
 
         $crawler->setConcurrency($concurrency);
         $crawler->setCrawlObserver($observer);

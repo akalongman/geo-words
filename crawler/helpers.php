@@ -18,7 +18,7 @@ if (! function_exists('env')) {
      * @param  mixed $default
      * @return mixed
      */
-    function env($key, $default = null)
+    function env(string $key, $default = null)
     {
         $value = $_ENV[$key] ?? null;
 
@@ -71,7 +71,7 @@ if (! function_exists('starts_with')) {
      * @param  string|array $needles
      * @return bool
      */
-    function starts_with($haystack, $needles)
+    function starts_with(string $haystack, $needles): bool
     {
         foreach ((array) $needles as $needle) {
             if ($needle !== '' && mb_substr($haystack, 0, mb_strlen($needle)) === (string) $needle) {

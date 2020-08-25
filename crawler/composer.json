@@ -30,5 +30,18 @@
         "psr-4": {
             "Lib\\": "lib/"
         }
+    },
+    "require-dev": {
+        "longman/php-code-style": "^4.5"
+    },
+    "scripts": {
+        "phpcs": "vendor/bin/phpcs --standard=phpcs.xml -spn --encoding=utf-8 --report-width=150 --colors --parallel=16 lib/",
+        "phpcbf": "vendor/bin/phpcbf --standard=phpcs.xml -spn --encoding=utf-8 --report-width=150 --colors --parallel=32 lib/"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "process-timeout": 3600
     }
 }

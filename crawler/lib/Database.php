@@ -12,8 +12,7 @@ use function getcwd;
 
 class Database
 {
-    /** @var \PDO */
-    private $db;
+    private PDO $db;
 
     public const SORT_OCCURRENCES_ASC = '`occurrences` ASC, `word` ASC';
     public const SORT_OCCURRENCES_DESC = '`occurrences` DESC, `word` ASC';
@@ -40,20 +39,20 @@ class Database
         return (int) $this->db->lastInsertId();
     }
 
-    public function getCrawlProject(int $project_id): array
+    public function getCrawlProject(int $projectId): array
     {
-        $stmt = $this->db->prepare('SELECT * FROM `projects` WHERE `id`=' . $project_id . ' LIMIT 1');
+        $stmt = $this->db->prepare('SELECT * FROM `projects` WHERE `id`=' . $projectId . ' LIMIT 1');
         $stmt->execute();
         $project = $stmt->fetch(PDO::FETCH_ASSOC);
         if (empty($project)) {
-            throw new InvalidArgumentException('Crawl project with id ' . $project_id . ' does not found');
+            throw new InvalidArgumentException('Crawl project with id ' . $projectId . ' does not found');
         }
         $project['id'] = (int) $project['id'];
 
         return $project;
     }
 
-    public function createCrawlerRecord(int $project_id, string $url): int
+    public function createCrawlerRecord(int $projectId, string $url): int
     {
         $st = $this->db->prepare('INSERT INTO `crawls`
                 (`project_id`, `url`, `status`, `created_at`, `updated_at`)
@@ -61,7 +60,7 @@ class Database
                 (:project_id, :url, :status, :created_at, :updated_at);
             ');
 
-        $st->bindValue(':project_id', $project_id);
+        $st->bindValue(':project_id', $projectId);
         $st->bindValue(':url', $url);
         $st->bindValue(':status', 0);
         $st->bindValue(':created_at', Carbon::now());
@@ -87,13 +86,13 @@ class Database
 
     }
 
-    public function getCrawlerRecord(int $crawl_id): array
+    public function getCrawlerRecord(int $crawlId): array
     {
-        $stmt = $this->db->prepare('SELECT * FROM `crawls` WHERE `id`=' . $crawl_id . ' LIMIT 1');
+        $stmt = $this->db->prepare('SELECT * FROM `crawls` WHERE `id`=' . $crawlId . ' LIMIT 1');
         $stmt->execute();
         $crawl = $stmt->fetch(PDO::FETCH_ASSOC);
         if (empty($crawl)) {
-            throw new InvalidArgumentException('Crawl process with id ' . $crawl_id . ' does not found');
+            throw new InvalidArgumentException('Crawl process with id ' . $crawlId . ' does not found');
         }
         $crawl['id'] = (int) $crawl['id'];
         $crawl['project_id'] = (int) $crawl['project_id'];
@@ -101,9 +100,9 @@ class Database
         return $crawl;
     }
 
-    public function getWords(int $crawl_id, int $occurrence = 0, string $sort = null): array
+    public function getWords(int $crawlId, int $occurrence = 0, string $sort = null): array
     {
-        $sql = 'SELECT * FROM `words` WHERE `crawl_id`=' . $crawl_id;
+        $sql = 'SELECT * FROM `words` WHERE `crawl_id`=' . $crawlId;
         if ($occurrence) {
             $sql .= ' AND `occurrences` >= ' . $occurrence;
         }
@@ -118,7 +117,7 @@ class Database
         return $words;
     }
 
-    public function saveWords(int $project_id, int $crawl_id, array $words): void
+    public function saveWords(int $projectId, int $crawlId, array $words): void
     {
         if (empty($words)) {
             return;
@@ -129,11 +128,11 @@ class Database
         $chunks = $collection->chunk(env('DB_INSERT_CHUNK_SIZE', 500));
         /** @var \Illuminate\Support\Collection $chunk */
         foreach ($chunks as $chunk) {
-            $this->insertWords($project_id, $crawl_id, $chunk->toArray());
+            $this->insertWords($projectId, $crawlId, $chunk->toArray());
         }
     }
 
-    private function insertWords(int $project_id, int $crawl_id, array $words): void
+    private function insertWords(int $projectId, int $crawlId, array $words): void
     {
         $date = Carbon::now();
 
@@ -142,8 +141,8 @@ class Database
         foreach ($words as $word) {
             $values[] = '(?, ?, ?, ?, ?, ?)';
             $inserts[] = trim($word);
-            $inserts[] = $project_id;
-            $inserts[] = $crawl_id;
+            $inserts[] = $projectId;
+            $inserts[] = $crawlId;
             $inserts[] = 1;
             $inserts[] = $date;
             $inserts[] = $date;

@@ -71,13 +71,12 @@ class CrawlObserver extends BaseCrawlObserver
 
         $database = $this->getDatabase();
 
-        $crawl_project = $this->getCrawlProject();
-        $words = $database->getWords($crawl_project['id']);
+        $crawlProject = $this->getCrawlProject();
+        $words = $database->getWords($crawlProject['id']);
 
         $memory = $this->getMemoryUsage() - $this->startMemory;
         $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
         $this->output->writeln('<info>Total Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
-
     }
 
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null)
@@ -103,8 +102,8 @@ class CrawlObserver extends BaseCrawlObserver
 
     private function getContentsFromPdf(UriInterface $url): string
     {
-        $url_str = (string) $url;
-        $name = md5($url_str) . '.pdf';
+        $urlStr = (string) $url;
+        $name = md5($urlStr) . '.pdf';
         $path = 'data/tmp/' . $name;
 
         $client = new Client();
@@ -130,9 +129,9 @@ class CrawlObserver extends BaseCrawlObserver
         }
 
         $database = $this->getDatabase();
-        $crawl_project = $this->getCrawlProject();
+        $crawlProject = $this->getCrawlProject();
 
-        $database->saveWords($crawl_project['id'], $this->crawlId, $words);
+        $database->saveWords($crawlProject['id'], $this->crawlId, $words);
     }
 
     private function parseGeorgianWords(string $content): array
@@ -143,10 +142,10 @@ class CrawlObserver extends BaseCrawlObserver
             return [];
         }
 
-        $unique_words = array_unique($matches[1]);
+        $uniqueWords = array_unique($matches[1]);
 
         $words = [];
-        foreach ($unique_words as $word) {
+        foreach ($uniqueWords as $word) {
             $word = preg_replace('#-{2,}#u', '-', $word);
             $word = trim($word, " \t\n\r\0\x0B-");
 

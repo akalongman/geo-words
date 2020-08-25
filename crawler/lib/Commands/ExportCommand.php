@@ -22,8 +22,7 @@ class ExportCommand extends Command
     private const SORT_WORD_ASC = 'word_asc';
     private const SORT_WORD_DESC = 'word_desc';
 
-
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('export')
@@ -37,49 +36,49 @@ class ExportCommand extends Command
             ->addOption('format', 'f', InputOption::VALUE_REQUIRED, 'File format for exporting (sql, txt, dic)');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $path = $input->getArgument('path');
 
-        $folder_path = realpath(getcwd() . '/' . $path);
+        $folderPath = realpath(getcwd() . '/' . $path);
 
-        if (! is_dir($folder_path)) {
-            throw new InvalidArgumentException('Folder ' . $folder_path . ' does not found');
+        if (! is_dir($folderPath)) {
+            throw new InvalidArgumentException('Folder ' . $folderPath . ' does not found');
         }
-        $min_occurrence = (int) $input->getOption('min-occurrence');
+        $minOccurrence = (int) $input->getOption('min-occurrence');
 
         /** @var \Lib\Database $database */
         $database = container()->get('database');
 
-        $crawl_id = (int) $input->getOption('crawl-id');
-        $database->getCrawlerRecord($crawl_id);
+        $crawlId = (int) $input->getOption('crawl-id');
+        $database->getCrawlerRecord($crawlId);
 
-        $output->writeln('<info>Start exporting of crawl ID:</info> <comment>' . $crawl_id . '</comment>');
-        if ($min_occurrence) {
-            $output->writeln('<info>Minimum occurrences:</info> <comment>' . $min_occurrence . '</comment>');
+        $output->writeln('<info>Start exporting of crawl ID:</info> <comment>' . $crawlId . '</comment>');
+        if ($minOccurrence) {
+            $output->writeln('<info>Minimum occurrences:</info> <comment>' . $minOccurrence . '</comment>');
         }
 
         $sort = $this->getTranslatedSort($input);
 
-        $words = $database->getWords($crawl_id, $min_occurrence, $sort);
+        $words = $database->getWords($crawlId, $minOccurrence, $sort);
         $output->writeln('<info>Words found in the database:</info> <comment>' . count($words) . '</comment>');
 
-        $with_occurrences = (bool) $input->getOption('with-occurrences');
+        $withOccurrences = (bool) $input->getOption('with-occurrences');
         $format = $input->getOption('format');
         switch ($format) {
             default;
             case self::FORMAT_TXT;
-                $this->exportToText($path, $words, 'txt', $with_occurrences);
+                $this->exportToText($path, $words, 'txt', $withOccurrences);
 
                 break;
 
             case self::FORMAT_DIC;
-                $this->exportToText($path, $words, 'dic', $with_occurrences);
+                $this->exportToText($path, $words, 'dic', $withOccurrences);
 
                 break;
 
             case self::FORMAT_SQL;
-                $this->exportToSql($path, $words, $with_occurrences);
+                $this->exportToSql($path, $words, $withOccurrences);
 
                 break;
         }
@@ -89,14 +88,14 @@ class ExportCommand extends Command
         return 0;
     }
 
-    private function exportToText(string $path, array $words, string $ext, bool $with_occurrences)
+    private function exportToText(string $path, array $words, string $ext, bool $withOccurrences): void
     {
         $file = realpath($path) . '/ka_GE.' . $ext;
 
         $list = [];
         foreach ($words as $row) {
             $line = $row['word'];
-            if ($with_occurrences) {
+            if ($withOccurrences) {
                 $line = $line . ' ' . $row['occurrences'];
             }
             $list[] = $line;
@@ -105,14 +104,14 @@ class ExportCommand extends Command
         file_put_contents($file, implode("\n", $list));
     }
 
-    private function exportToSql(string $path, array $words, bool $with_occurrences)
+    private function exportToSql(string $path, array $words, bool $withOccurrences): void
     {
         $file = realpath($path) . '/ka_GE.sql';
 
         $list = [];
         foreach ($words as $row) {
             $line = "'" . $row['word'] . "'";
-            if ($with_occurrences) {
+            if ($withOccurrences) {
                 $line = $line . ", " . $row['occurrences'];
             }
 
@@ -120,7 +119,7 @@ class ExportCommand extends Command
         }
         $rows = '(' . implode("),\n(", $list) . ');';
 
-        $sql = $with_occurrences
+        $sql = $withOccurrences
             ? 'INSERT INTO `words` (`word`, `occurrences`) VALUES ' . $rows
             : 'INSERT INTO `words` (`word`) VALUES ' . $rows;
 
@@ -155,5 +154,4 @@ class ExportCommand extends Command
 
         return $sort;
     }
-
 }
