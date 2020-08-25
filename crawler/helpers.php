@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use Illuminate\Container\Container;
@@ -14,8 +15,8 @@ if (! function_exists('env')) {
     /**
      * Gets the value of an environment variable.
      *
-     * @param  string $key
-     * @param  mixed $default
+     * @param string $key
+     * @param mixed $default
      * @return mixed
      */
     function env(string $key, $default = null)
@@ -53,7 +54,7 @@ if (! function_exists('value')) {
     /**
      * Return the default value of the given value.
      *
-     * @param  mixed $value
+     * @param mixed $value
      * @return mixed
      */
     function value($value)
@@ -62,13 +63,12 @@ if (! function_exists('value')) {
     }
 }
 
-
 if (! function_exists('starts_with')) {
     /**
      * Determine if a given string starts with a given substring.
      *
-     * @param  string $haystack
-     * @param  string|array $needles
+     * @param string $haystack
+     * @param string|array $needles
      * @return bool
      */
     function starts_with(string $haystack, $needles): bool
@@ -88,8 +88,8 @@ if (! function_exists('ends_with')) {
     /**
      * Determine if a given string ends with a given substring.
      *
-     * @param  string $haystack
-     * @param  string|array $needles
+     * @param string $haystack
+     * @param string|array $needles
      * @return bool
      */
     function ends_with($haystack, $needles)
