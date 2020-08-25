@@ -13,11 +13,19 @@ Download in:
 
 ## Crawler
 
-Crawler is written on PHP uses MySQL as a database and source placed under `crawler` folder.
+Crawler is written on PHP and uses MySQL as a database. Code placed under `crawler` folder.
 
-Before running the script should be configured database and imported file `structure.sql`. 
+Before running the script should be configured database and run migrations. 
 
-After that rename file `.env.example` to `.env` and specify database credentials.
+First of all rename the file `.env.example` to `.env` and specify database credentials.
+
+Install composer dependencies:
+
+    composer install
+
+And run migrations:
+
+    vendor/bin/phinx migrate  
 
 Usage: `php cmd crawl "http://www.nplg.gov.ge/gwdict/index.php"`
 
