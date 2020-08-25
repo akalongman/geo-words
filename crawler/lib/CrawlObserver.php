@@ -13,6 +13,15 @@ use Spatie\PdfToText\Pdf;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_unique;
+use function count;
+use function md5;
+use function memory_get_usage;
+use function microtime;
+use function preg_match_all;
+use function preg_replace;
+use function trim;
+
 class CrawlObserver extends BaseCrawlObserver
 {
     private InputInterface $input;

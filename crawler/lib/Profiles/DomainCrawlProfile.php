@@ -1,10 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Lib\Profiles;
 
 use Psr\Http\Message\UriInterface;
 use Spatie\Crawler\CrawlProfile as BaseCrawlProfile;
+
+use function substr;
 
 class DomainCrawlProfile extends BaseCrawlProfile
 {

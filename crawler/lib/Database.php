@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Lib;
@@ -9,15 +10,18 @@ use InvalidArgumentException;
 use PDO;
 
 use function getcwd;
+use function implode;
+use function mt_rand;
+use function trim;
 
 class Database
 {
-    private PDO $db;
-
     public const SORT_OCCURRENCES_ASC = '`occurrences` ASC, `word` ASC';
     public const SORT_OCCURRENCES_DESC = '`occurrences` DESC, `word` ASC';
     public const SORT_WORD_ASC = '`word` ASC';
     public const SORT_WORD_DESC = '`word` DESC';
+
+    private PDO $db;
 
     public function __construct()
     {
@@ -83,7 +87,6 @@ class Database
         $st->bindValue(':msg', $msg);
         $st->bindValue(':updated_at', Carbon::now());
         $st->execute();
-
     }
 
     public function getCrawlerRecord(int $crawlId): array
@@ -100,7 +103,7 @@ class Database
         return $crawl;
     }
 
-    public function getWords(int $crawlId, int $occurrence = 0, string $sort = null): array
+    public function getWords(int $crawlId, int $occurrence = 0, ?string $sort = null): array
     {
         $sql = 'SELECT * FROM `words` WHERE `crawl_id`=' . $crawlId;
         if ($occurrence) {

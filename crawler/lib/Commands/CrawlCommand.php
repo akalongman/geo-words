@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Lib\Commands;
@@ -15,6 +16,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use function intval;
+
+use const PHP_EOL;
 
 class CrawlCommand extends Command
 {
@@ -66,11 +71,6 @@ class CrawlCommand extends Command
         $crawler->doNotExecuteJavaScript();
 
         switch ($profile) {
-            default:
-            case self::PROFILE_INTERNAL:
-                $crawler->setCrawlProfile(new CrawlInternalUrls($url));
-                break;
-
             case self::PROFILE_ALL:
                 $crawler->setCrawlProfile(new CrawlAllUrls());
                 break;
@@ -96,6 +96,11 @@ class CrawlCommand extends Command
                 $output->writeln('<info>Domain:</info> <comment>' . $domain . '</comment>');
                 $crawler->setCrawlProfile(new DomainCrawlProfile($domain));
                 break;
+
+            case self::PROFILE_INTERNAL:
+            default:
+                $crawler->setCrawlProfile(new CrawlInternalUrls($url));
+                break;
         }
 
         $container = container();
@@ -107,7 +112,7 @@ class CrawlCommand extends Command
         }
 
         $crawlProject = $database->getCrawlProject($projectId);
-        $container->bind('crawl_project', function () use ($crawlProject) {
+        $container->bind('crawl_project', static function () use ($crawlProject) {
             return $crawlProject;
         });
 

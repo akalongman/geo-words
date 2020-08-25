@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Lib\Commands;
@@ -10,6 +11,13 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use function count;
+use function file_put_contents;
+use function getcwd;
+use function implode;
+use function is_dir;
+use function realpath;
 
 class ExportCommand extends Command
 {
@@ -66,19 +74,19 @@ class ExportCommand extends Command
         $withOccurrences = (bool) $input->getOption('with-occurrences');
         $format = $input->getOption('format');
         switch ($format) {
-            default;
-            case self::FORMAT_TXT;
-                $this->exportToText($path, $words, 'txt', $withOccurrences);
-
-                break;
-
-            case self::FORMAT_DIC;
+            case self::FORMAT_DIC:
                 $this->exportToText($path, $words, 'dic', $withOccurrences);
 
                 break;
 
-            case self::FORMAT_SQL;
+            case self::FORMAT_SQL:
                 $this->exportToSql($path, $words, $withOccurrences);
+
+                break;
+
+            case self::FORMAT_TXT:
+            default:
+                $this->exportToText($path, $words, 'txt', $withOccurrences);
 
                 break;
         }
@@ -96,7 +104,7 @@ class ExportCommand extends Command
         foreach ($words as $row) {
             $line = $row['word'];
             if ($withOccurrences) {
-                $line = $line . ' ' . $row['occurrences'];
+                $line .= ' ' . $row['occurrences'];
             }
             $list[] = $line;
         }
@@ -112,7 +120,7 @@ class ExportCommand extends Command
         foreach ($words as $row) {
             $line = "'" . $row['word'] . "'";
             if ($withOccurrences) {
-                $line = $line . ", " . $row['occurrences'];
+                $line .= ', ' . $row['occurrences'];
             }
 
             $list[] = $line;
@@ -142,13 +150,13 @@ class ExportCommand extends Command
                 $sort = Database::SORT_OCCURRENCES_DESC;
                 break;
 
-            default:
-            case self::SORT_WORD_ASC:
-                $sort = Database::SORT_WORD_ASC;
-                break;
-
             case self::SORT_WORD_DESC:
                 $sort = Database::SORT_WORD_DESC;
+                break;
+
+            case self::SORT_WORD_ASC:
+            default:
+                $sort = Database::SORT_WORD_ASC;
                 break;
         }
 
