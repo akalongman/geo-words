@@ -4,11 +4,21 @@ declare(strict_types=1);
 
 namespace Longman\Crawler\Commands;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Handler\CurlMultiHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\MessageFormatter;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 use Longman\Crawler\CrawlObserver;
 use Longman\Crawler\CrawlQueues\RedisCrawlQueue;
+use Longman\Crawler\Database;
 use Longman\Crawler\Profiles\DomainCrawlProfile;
 use Longman\Crawler\Profiles\UrlSubsetProfile;
+use Psr\Log\LoggerInterface;
 use Spatie\Crawler\CrawlAllUrls;
 use Spatie\Crawler\Crawler;
 use Spatie\Crawler\CrawlInternalUrls;
@@ -19,7 +29,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function container;
 use function intval;
+use function sprintf;
 
 use const PHP_EOL;
 
@@ -70,13 +82,9 @@ class CrawlCommand extends Command
         $output->writeln('<info>Concurrency:</info> <comment>' . $concurrency . '</comment>');
         $output->writeln('<info>Profile:</info> <comment>' . ($profile ?? self::PROFILE_INTERNAL) . '</comment>');
 
-        $crawler = Crawler::create([
-            RequestOptions::COOKIES         => true,
-            RequestOptions::CONNECT_TIMEOUT => 10,
-            RequestOptions::TIMEOUT         => 10,
-            RequestOptions::ALLOW_REDIRECTS => false,
-        ]);
+        $httpClient = $this->createHttpClient();
 
+        $crawler = new Crawler($httpClient);
         $crawler->ignoreRobots();
         $crawler->acceptNofollowLinks();
         $crawler->doNotExecuteJavaScript();
@@ -116,8 +124,8 @@ class CrawlCommand extends Command
         }
 
         $container = container();
-        /** @var \src\Database $database */
-        $database = $container->get('database');
+        /** @var \Longman\Crawler\Database $database */
+        $database = $container->get(Database::class);
 
         if (! $projectId) {
             $projectId = $database->createCrawlProject($url);
@@ -151,5 +159,75 @@ class CrawlCommand extends Command
         $crawler->startCrawling($url);
 
         return 0;
+    }
+
+    private function createHttpClient(): Client
+    {
+        /** @var \Psr\Log\LoggerInterface $logger */
+        $logger = container()->get(LoggerInterface::class);
+
+        $stack = HandlerStack::create(new CurlMultiHandler());
+
+        // Log all requests
+        $stack->push(
+            Middleware::log(
+                $logger,
+                new MessageFormatter()
+            )
+        );
+
+        // Add retry policy
+        $stack->push(Middleware::retry(static function (
+            int $retries,
+            Request $request,
+            ?Response $response = null,
+            ?RequestException $exception = null
+        ): bool {
+            if ($retries >= 5) {
+                return false;
+            }
+
+            $shouldRetry = false;
+            // Retry connection exceptions.
+            if ($exception instanceof ConnectException) {
+                $shouldRetry = true;
+            }
+            // Retry on server errors.
+            if ($response && $response->getStatusCode() >= 500) {
+                $shouldRetry = true;
+            }
+
+            // Log if we are retrying
+            if ($shouldRetry) {
+                container()->get(LoggerInterface::class)->notice(
+                    sprintf(
+                        'Retrying %s %s %s/5, %s',
+                        $request->getMethod(),
+                        $request->getUri(),
+                        $retries + 1,
+                        $response ? 'status code: ' . $response->getStatusCode() :
+                            $exception->getMessage()
+                    )
+                );
+            }
+
+            return $shouldRetry;
+        }, static function (int $numberOfRetries): int {
+            return 1000 * $numberOfRetries;
+        }));
+
+        $httpClient = new Client([
+            'handler'                       => $stack,
+            'verify'                        => false,
+            RequestOptions::COOKIES         => true,
+            RequestOptions::CONNECT_TIMEOUT => 10,
+            RequestOptions::TIMEOUT         => 10,
+            RequestOptions::ALLOW_REDIRECTS => false,
+            RequestOptions::HEADERS         => [
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36',
+            ],
+        ]);
+
+        return $httpClient;
     }
 }

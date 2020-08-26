@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Longman\Crawler;
 
 use Carbon\Carbon;
-use Dotenv\Dotenv;
 use InvalidArgumentException;
 use PDO;
 
-use function getcwd;
 use function implode;
 use function mt_rand;
 use function trim;
@@ -23,9 +21,9 @@ class Database
 
     private PDO $db;
 
-    public function __construct()
+    public function __construct(array $config)
     {
-        $this->db = $this->createDatabaseConnection();
+        $this->db = $this->createDatabaseConnection($config);
     }
 
     public function createCrawlProject(string $name = 'crawl'): int
@@ -162,22 +160,14 @@ class Database
         $st->execute($inserts);
     }
 
-    private function createDatabaseConnection(): PDO
+    private function createDatabaseConnection(array $config): PDO
     {
-        $this->loadConfig();
+        $dsn = 'mysql:host=' . $config['host'] . ';dbname=' . $config['dbname'];
+        $options = [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . $config['encoding']];
 
-        $dsn = 'mysql:host=' . env('DB_HOST') . ';dbname=' . env('DB_NAME');
-        $options = [PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . env('DB_ENCODING', 'utf8mb4')];
-
-        $pdo = new PDO($dsn, env('DB_USER'), env('DB_PASSWORD'), $options);
+        $pdo = new PDO($dsn, $config['user'], $config['password'], $options);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         return $pdo;
-    }
-
-    private function loadConfig(): void
-    {
-        $dotEnv = Dotenv::createImmutable(getcwd(), '.env');
-        $dotEnv->load();
     }
 }

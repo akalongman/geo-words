@@ -9,12 +9,43 @@ require __DIR__ . '/vendor/autoload.php';
 
 chdir(__DIR__);
 
+use Dotenv\Dotenv;
+use Longman\Crawler\Database;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Application;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-container()->bind('database', Longman\Crawler\Database::class, true);
+// load env variables
+$dotEnv = Dotenv::createImmutable(getcwd(), '.env');
+$dotEnv->load();
+
+container()->singleton(Database::class, static function (): Database {
+    $database = new Database([
+        'host'     => env('DB_HOST'),
+        'dbname'   => env('DB_NAME'),
+        'user'     => env('DB_USER'),
+        'password' => env('DB_PASSWORD'),
+        'encoding' => env('DB_ENCODING', 'utf8mb4'),
+    ]);
+
+    return $database;
+});
+
+container()->singleton(LoggerInterface::class, static function (): Logger {
+    $logger = new Logger('production');
+    $logger->pushHandler(
+        $logHandler = new RotatingFileHandler(__DIR__ . '/data/logs/crawler.log', 0, Logger::DEBUG, true, 0777)
+    );
+    $logHandler->setFormatter(new LineFormatter(null, null, true, true));
+
+    return $logger;
+});
 
 $application = new Application('Crawler', '1.0');
-
 $application->add(new Longman\Crawler\Commands\CrawlCommand());
 $application->add(new Longman\Crawler\Commands\ImportCommand());
 $application->add(new Longman\Crawler\Commands\ExportCommand());

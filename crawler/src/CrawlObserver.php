@@ -8,12 +8,14 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Psr\Log\LoggerInterface;
 use Spatie\Crawler\CrawlObserver as BaseCrawlObserver;
 use Spatie\PdfToText\Pdf;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;
+use function container;
 use function count;
 use function explode;
 use function file_exists;
@@ -99,6 +101,12 @@ class CrawlObserver extends BaseCrawlObserver
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         $this->output->writeln('<error>' . $requestException->getMessage() . '</error>');
         $this->getDatabase()->updateCrawlerRecord($this->crawlId, 2, 0, $requestException->getMessage());
+        /** @var \Psr\Log\LoggerInterface $logger */
+        $logger = container()->get(LoggerInterface::class);
+        $logger->error('Crawl request failed', [
+            'url'       => (string) $url,
+            'exception' => $requestException,
+        ]);
     }
 
     private function process(string $content): void
@@ -212,7 +220,7 @@ class CrawlObserver extends BaseCrawlObserver
 
     private function getDatabase(): Database
     {
-        return container()->get('database');
+        return container()->get(Database::class);
     }
 
     private function getCrawlProject(): array

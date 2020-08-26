@@ -55,8 +55,8 @@ class ExportCommand extends Command
         }
         $minOccurrence = (int) $input->getOption('min-occurrence');
 
-        /** @var \src\Database $database */
-        $database = container()->get('database');
+        /** @var \Longman\Crawler\Database $database */
+        $database = container()->get(Database::class);
 
         $crawlId = (int) $input->getOption('crawl-id');
         $database->getCrawlerRecord($crawlId);
