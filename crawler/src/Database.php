@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lib;
+namespace Longman\Crawler;
 
 use Carbon\Carbon;
 use Dotenv\Dotenv;

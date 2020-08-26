@@ -11,12 +11,12 @@ chdir(__DIR__);
 
 use Symfony\Component\Console\Application;
 
-container()->bind('database', Lib\Database::class, true);
+container()->bind('database', Longman\Crawler\Database::class, true);
 
 $application = new Application('Crawler', '1.0');
 
-$application->add(new Lib\Commands\CrawlCommand());
-$application->add(new Lib\Commands\ImportCommand());
-$application->add(new Lib\Commands\ExportCommand());
+$application->add(new Longman\Crawler\Commands\CrawlCommand());
+$application->add(new Longman\Crawler\Commands\ImportCommand());
+$application->add(new Longman\Crawler\Commands\ExportCommand());
 
 $application->run();

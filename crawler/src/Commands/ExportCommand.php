@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Lib\Commands;
+namespace Longman\Crawler\Commands;
 
 use InvalidArgumentException;
-use Lib\Database;
+use Longman\Crawler\Database;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -55,7 +55,7 @@ class ExportCommand extends Command
         }
         $minOccurrence = (int) $input->getOption('min-occurrence');
 
-        /** @var \Lib\Database $database */
+        /** @var \src\Database $database */
         $database = container()->get('database');
 
         $crawlId = (int) $input->getOption('crawl-id');

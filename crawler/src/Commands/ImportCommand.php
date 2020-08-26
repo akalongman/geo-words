@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lib\Commands;
+namespace Longman\Crawler\Commands;
 
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
@@ -38,7 +38,7 @@ class ImportCommand extends Command
             throw new InvalidArgumentException('File ' . $file . ' does not found');
         }
 
-        /** @var \Lib\Database $database */
+        /** @var \src\Database $database */
         $database = container()->get('database');
 
         $crawlId = (int) $input->getOption('crawl_id');

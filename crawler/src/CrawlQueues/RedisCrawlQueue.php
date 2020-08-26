@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lib\CrawlQueues;
+namespace Longman\Crawler\CrawlQueues;
 
 use Psr\Http\Message\UriInterface;
 use Redis;

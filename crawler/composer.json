@@ -29,15 +29,15 @@
             "helpers.php"
         ],
         "psr-4": {
-            "Lib\\": "lib/"
+            "Longman\\Crawler\\": "src/"
         }
     },
     "require-dev": {
         "longman/php-code-style": "^4.5"
     },
     "scripts": {
-        "phpcs": "vendor/bin/phpcs --standard=phpcs.xml -spn --encoding=utf-8 --report-width=150 --colors --parallel=16 lib/",
-        "phpcbf": "vendor/bin/phpcbf --standard=phpcs.xml -spn --encoding=utf-8 --report-width=150 --colors --parallel=32 lib/"
+        "phpcs": "vendor/bin/phpcs --standard=phpcs.xml -spn --encoding=utf-8 --report-width=150 --colors --parallel=16 src/",
+        "phpcbf": "vendor/bin/phpcbf --standard=phpcs.xml -spn --encoding=utf-8 --report-width=150 --colors --parallel=32 src/"
     },
     "config": {
         "optimize-autoloader": true,

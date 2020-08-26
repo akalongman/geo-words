@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Lib\Commands;
+namespace Longman\Crawler\Commands;
 
 use GuzzleHttp\RequestOptions;
-use Lib\CrawlObserver;
-use Lib\CrawlQueues\RedisCrawlQueue;
-use Lib\Profiles\DomainCrawlProfile;
-use Lib\Profiles\UrlSubsetProfile;
+use Longman\Crawler\CrawlObserver;
+use Longman\Crawler\CrawlQueues\RedisCrawlQueue;
+use Longman\Crawler\Profiles\DomainCrawlProfile;
+use Longman\Crawler\Profiles\UrlSubsetProfile;
 use Spatie\Crawler\CrawlAllUrls;
 use Spatie\Crawler\Crawler;
 use Spatie\Crawler\CrawlInternalUrls;
@@ -116,7 +116,7 @@ class CrawlCommand extends Command
         }
 
         $container = container();
-        /** @var \Lib\Database $database */
+        /** @var \src\Database $database */
         $database = $container->get('database');
 
         if (! $projectId) {
