@@ -15,12 +15,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;
 use function count;
+use function explode;
+use function file_exists;
+use function gmdate;
+use function localeconv;
 use function md5;
 use function memory_get_usage;
 use function microtime;
 use function preg_match_all;
 use function preg_replace;
+use function substr;
 use function trim;
+use function unlink;
 
 class CrawlObserver extends BaseCrawlObserver
 {
@@ -90,7 +96,9 @@ class CrawlObserver extends BaseCrawlObserver
 
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null)
     {
-        throw $requestException;
+        $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
+        $this->output->writeln('<error>' . $requestException->getMessage() . '</error>');
+        $this->getDatabase()->updateCrawlerRecord($this->crawlId, 2, 0, $requestException->getMessage());
     }
 
     private function process(string $content): void
@@ -103,6 +111,8 @@ class CrawlObserver extends BaseCrawlObserver
 
         $memory = $this->getMemoryUsage() - $this->startMemory;
         $this->output->writeln('<info>Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
+        $time = $this->getMeasuredTimeAsString();
+        $this->output->writeln('<info>Time:</info> <comment>' . $time . '</comment>');
         $this->output->writeln('- - -');
 
         $database = $this->getDatabase();
@@ -126,7 +136,10 @@ class CrawlObserver extends BaseCrawlObserver
             ->setPdf($path)
             ->text();
 
-        // @TODO: Delete $path
+        // Delete file
+        if (file_exists($path)) {
+            unlink($path);
+        }
 
         return (string) $text;
     }
@@ -184,6 +197,17 @@ class CrawlObserver extends BaseCrawlObserver
     private function getMicroTime(): float
     {
         return microtime(true);
+    }
+
+    private function getMeasuredTimeAsString(): string
+    {
+        $localeInfo = localeconv();
+        $point = $localeInfo['decimal_point'] ?? '.';
+
+        $time = $this->getMicroTime() - $this->startTime;
+        [$sec, $usec] = explode($point, (string) $time);
+
+        return gmdate('H:i:s', (int) $sec) . '.' . substr($usec, 0, 4);
     }
 
     private function getDatabase(): Database

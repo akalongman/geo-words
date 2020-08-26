@@ -6,11 +6,13 @@ namespace Lib\Commands;
 
 use GuzzleHttp\RequestOptions;
 use Lib\CrawlObserver;
+use Lib\CrawlQueues\RedisCrawlQueue;
 use Lib\Profiles\DomainCrawlProfile;
 use Lib\Profiles\UrlSubsetProfile;
 use Spatie\Crawler\CrawlAllUrls;
 use Spatie\Crawler\Crawler;
 use Spatie\Crawler\CrawlInternalUrls;
+use Spatie\Crawler\CrawlQueue\ArrayCrawlQueue;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -27,6 +29,8 @@ class CrawlCommand extends Command
     private const PROFILE_ALL = 'all';
     private const PROFILE_DOMAIN = 'domain';
     private const PROFILE_SUBSET = 'subset';
+    private const QUEUE_ARRAY = 'array';
+    private const QUEUE_REDIS = 'redis';
 
     private const CONCURRENCY_DEFAULT = 10;
 
@@ -37,22 +41,29 @@ class CrawlCommand extends Command
             ->setDescription('Start crawling')
             ->setHelp('This command allows to crawl given url')
             ->addArgument('url', InputArgument::REQUIRED, 'The website url for crawling. If url contains &, entire url should be wrapped by quotes (")')
-            ->addOption('concurrency', 'c', InputOption::VALUE_OPTIONAL, 'The concurrency. Default is ' . self::CONCURRENCY_DEFAULT)
-            ->addOption('project-id', 'pid', InputOption::VALUE_OPTIONAL, 'The project ID for continue')
+            ->addOption('concurrency', 'c', InputOption::VALUE_OPTIONAL, 'The concurrency (default: ' . self::CONCURRENCY_DEFAULT . ')')
+            ->addOption('project-id', 'P', InputOption::VALUE_OPTIONAL, 'The project ID for continue')
             ->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'The crawling profile. Values are: '
                 . PHP_EOL . self::PROFILE_INTERNAL . ' (default) - this profile will only crawl the internal urls on the pages of a host.'
                 . PHP_EOL . self::PROFILE_ALL . ' - this profile will crawl all urls on all pages including urls to an external site.'
                 . PHP_EOL . self::PROFILE_DOMAIN . ' - this profile will crawl all urls with given domain. --domain option should be passed')
             ->addOption('domain', 'd', InputOption::VALUE_OPTIONAL, 'Domain for matching parse urls, e.g. "ge"')
-            ->addOption('subset', 's', InputOption::VALUE_OPTIONAL, 'URL subset for matching parse urls');
+            ->addOption('subset', 's', InputOption::VALUE_OPTIONAL, 'URL subset for matching parse urls')
+            ->addOption(
+                'queue',
+                'Q',
+                InputOption::VALUE_OPTIONAL,
+                'Queue implementation: ' . self::QUEUE_ARRAY . ', ' . self::QUEUE_REDIS . '. (default: ' . self::QUEUE_ARRAY . ')'
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $url = $input->getArgument('url');
         $concurrency = $input->getOption('concurrency');
-        $concurrency = $concurrency ? intval($concurrency) : 1;
+        $concurrency = $concurrency ? intval($concurrency) : self::CONCURRENCY_DEFAULT;
         $profile = $input->getOption('profile');
+        $queue = $input->getOption('queue');
         $projectId = (int) $input->getOption('project-id');
 
         $output->writeln('<info>Start crawling of:</info> <comment>' . $url . '</comment>');
@@ -69,6 +80,7 @@ class CrawlCommand extends Command
         $crawler->ignoreRobots();
         $crawler->acceptNofollowLinks();
         $crawler->doNotExecuteJavaScript();
+        $crawler->setParseableMimeTypes(['text/html', 'text/plain', 'text/json', 'application/pdf']);
 
         switch ($profile) {
             case self::PROFILE_ALL:
@@ -122,6 +134,17 @@ class CrawlCommand extends Command
 
         $crawler->setConcurrency($concurrency);
         $crawler->setCrawlObserver($observer);
+
+        switch ($queue) {
+            case self::QUEUE_REDIS:
+                $crawler->setCrawlQueue(new RedisCrawlQueue());
+                break;
+
+            case self::QUEUE_ARRAY:
+            default:
+                $crawler->setCrawlQueue(new ArrayCrawlQueue());
+                break;
+        }
 
         $output->writeln('- - -');
 
