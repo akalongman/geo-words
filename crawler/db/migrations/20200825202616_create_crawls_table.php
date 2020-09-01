@@ -16,6 +16,7 @@ final class CreateCrawlsTable extends AbstractMigration
             ->addColumn('status', 'tinyinteger', ['signed' => false, 'default' => 0])
             ->addColumn('created_at', 'timestamp', ['null' => true, 'precision' => 3])
             ->addColumn('updated_at', 'timestamp', ['null' => true, 'precision' => 3])
+            ->addIndex('url')
             ->addForeignKey('project_id', 'projects', ['id'])
             ->create();
         $this->execute('ALTER TABLE `crawls` MODIFY COLUMN `created_at` TIMESTAMP(3)
