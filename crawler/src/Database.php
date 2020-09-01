@@ -19,6 +19,10 @@ class Database
     public const SORT_WORD_ASC = '`word` ASC';
     public const SORT_WORD_DESC = '`word` DESC';
 
+    public const CRAWL_STATUS_PENDING = 0;
+    public const CRAWL_STATUS_PROCESSED = 1;
+    public const CRAWL_STATUS_ERRORED = 2;
+
     private PDO $db;
 
     public function __construct(array $config)
@@ -64,7 +68,7 @@ class Database
 
         $st->bindValue(':project_id', $projectId);
         $st->bindValue(':url', $url);
-        $st->bindValue(':status', 0);
+        $st->bindValue(':status', self::CRAWL_STATUS_PENDING);
         $st->bindValue(':created_at', Carbon::now());
         $st->bindValue(':updated_at', Carbon::now());
         $st->execute();
@@ -131,6 +135,11 @@ class Database
         foreach ($chunks as $chunk) {
             $this->insertWords($projectId, $crawlId, $chunk->toArray());
         }
+    }
+
+    public function getPdo(): PDO
+    {
+        return $this->db;
     }
 
     private function insertWords(int $projectId, int $crawlId, array $words): void

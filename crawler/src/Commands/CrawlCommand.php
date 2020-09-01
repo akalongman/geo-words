@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Longman\Crawler\Commands;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\CurlMultiHandler;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\MessageFormatter;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 use Longman\Crawler\CrawlObserver;
+use Longman\Crawler\CrawlQueues\DatabaseCrawlQueue;
 use Longman\Crawler\CrawlQueues\RedisCrawlQueue;
 use Longman\Crawler\Database;
 use Longman\Crawler\Profiles\DomainCrawlProfile;
@@ -43,6 +44,7 @@ class CrawlCommand extends Command
     private const PROFILE_SUBSET = 'subset';
     private const QUEUE_ARRAY = 'array';
     private const QUEUE_REDIS = 'redis';
+    private const QUEUE_DATABASE = 'database';
 
     private const CONCURRENCY_DEFAULT = 10;
 
@@ -148,6 +150,10 @@ class CrawlCommand extends Command
                 $crawler->setCrawlQueue(new RedisCrawlQueue());
                 break;
 
+            case self::QUEUE_DATABASE:
+                $crawler->setCrawlQueue(new DatabaseCrawlQueue($database));
+                break;
+
             case self::QUEUE_ARRAY:
             default:
                 $crawler->setCrawlQueue(new ArrayCrawlQueue());
@@ -164,17 +170,17 @@ class CrawlCommand extends Command
     private function createHttpClient(): Client
     {
         /** @var \Psr\Log\LoggerInterface $logger */
-        $logger = container()->get(LoggerInterface::class);
+        //$logger = container()->get(LoggerInterface::class);
 
         $stack = HandlerStack::create(new CurlMultiHandler());
 
         // Log all requests
-        $stack->push(
+        /*$stack->push(
             Middleware::log(
                 $logger,
                 new MessageFormatter()
             )
-        );
+        );*/
 
         // Add retry policy
         $stack->push(Middleware::retry(static function (

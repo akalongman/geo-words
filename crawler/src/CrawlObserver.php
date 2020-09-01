@@ -62,7 +62,7 @@ class CrawlObserver extends BaseCrawlObserver
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $database->updateCrawlerRecord($this->crawlId, 2, 0, 'Response is empty');
+            $database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
 
             return;
         }
@@ -100,7 +100,7 @@ class CrawlObserver extends BaseCrawlObserver
     {
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         $this->output->writeln('<error>' . $requestException->getMessage() . '</error>');
-        $this->getDatabase()->updateCrawlerRecord($this->crawlId, 2, 0, $requestException->getMessage());
+        $this->getDatabase()->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
         /** @var \Psr\Log\LoggerInterface $logger */
         $logger = container()->get(LoggerInterface::class);
         $logger->error('Crawl request failed', [
@@ -124,7 +124,7 @@ class CrawlObserver extends BaseCrawlObserver
         $this->output->writeln('- - -');
 
         $database = $this->getDatabase();
-        $database->updateCrawlerRecord($this->crawlId, 1, count($words), '');
+        $database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_PROCESSED, count($words), '');
     }
 
     private function getContentsFromPdf(UriInterface $url): string
