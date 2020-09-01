@@ -11,10 +11,14 @@ chdir(__DIR__);
 
 use Dotenv\Dotenv;
 use Longman\Crawler\Database;
+use Longman\Crawler\Exceptions\HandleExceptions;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
+use Sentry\ClientBuilder;
+use Sentry\SentrySdk;
+use Sentry\State\HubInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -23,6 +27,32 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 $dotEnv = Dotenv::createImmutable(getcwd(), '.env');
 $dotEnv->load();
 
+// Initialize logger
+container()->singleton(LoggerInterface::class, static function (): Logger {
+    $logger = new Logger('production');
+    $logger->pushHandler(
+        $logHandler = new RotatingFileHandler(__DIR__ . '/data/logs/crawler.log', 0, Logger::DEBUG, true, 0777)
+    );
+    $logHandler->setFormatter(new LineFormatter(null, null, true, true));
+
+    return $logger;
+});
+
+// Initialize sentry
+container()->singleton(SentrySdk::class, static function (): ?HubInterface {
+    if (! env('SENTRY_DSN')) {
+        return null;
+    }
+
+    $client = ClientBuilder::create(['dsn' => env('SENTRY_DSN')])->getClient();
+    SentrySdk::init()->bindClient($client);
+
+    return SentrySdk::getCurrentHub();
+});
+
+$handler = new HandleExceptions(container()->get(LoggerInterface::class), container()->get(SentrySdk::class));
+
+// Initialize database
 container()->singleton(Database::class, static function (): Database {
     $database = new Database([
         'host'     => env('DB_HOST'),
@@ -33,16 +63,6 @@ container()->singleton(Database::class, static function (): Database {
     ]);
 
     return $database;
-});
-
-container()->singleton(LoggerInterface::class, static function (): Logger {
-    $logger = new Logger('production');
-    $logger->pushHandler(
-        $logHandler = new RotatingFileHandler(__DIR__ . '/data/logs/crawler.log', 0, Logger::DEBUG, true, 0777)
-    );
-    $logHandler->setFormatter(new LineFormatter(null, null, true, true));
-
-    return $logger;
 });
 
 $application = new Application('Crawler', '1.0');
