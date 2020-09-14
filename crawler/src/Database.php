@@ -6,6 +6,7 @@ namespace Longman\Crawler;
 
 use Carbon\Carbon;
 use InvalidArgumentException;
+use Longman\Crawler\Entities\Project;
 use PDO;
 
 use function implode;
@@ -30,22 +31,29 @@ class Database
         $this->db = $this->createDatabaseConnection($config);
     }
 
-    public function createCrawlProject(string $name = 'crawl'): int
+    public function createCrawlProject(string $name = 'crawl'): Project
     {
+        $now = Carbon::now();
         $st = $this->db->prepare('INSERT INTO `projects`
                 (`name`, `created_at`)
                 VALUES
                 (:name, :created_at);
             ');
 
-        $st->bindValue(':name', $name . ' ' . mt_rand(1, 1000));
-        $st->bindValue(':created_at', Carbon::now());
+        $st->bindValue(':name', $name . ': ' . mt_rand(1, 1000));
+        $st->bindValue(':created_at', $now->toDateTimeString('µ'));
         $st->execute();
 
-        return (int) $this->db->lastInsertId();
+        $project = new Project(
+            (int) $this->db->lastInsertId(),
+            $name,
+            $now->toDateTimeString('µ')
+        );
+
+        return $project;
     }
 
-    public function getCrawlProject(int $projectId): array
+    public function getCrawlProject(int $projectId): Project
     {
         $stmt = $this->db->prepare('SELECT * FROM `projects` WHERE `id`=' . $projectId . ' LIMIT 1');
         $stmt->execute();
@@ -53,7 +61,12 @@ class Database
         if (empty($project)) {
             throw new InvalidArgumentException('Crawl project with id ' . $projectId . ' does not found');
         }
-        $project['id'] = (int) $project['id'];
+
+        $project = new Project(
+            (int) $project['id'],
+            $project['name'],
+            $project['created_at']
+        );
 
         return $project;
     }

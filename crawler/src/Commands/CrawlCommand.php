@@ -17,6 +17,7 @@ use Longman\Crawler\CrawlObserver;
 use Longman\Crawler\CrawlQueues\DatabaseCrawlQueue;
 use Longman\Crawler\CrawlQueues\RedisCrawlQueue;
 use Longman\Crawler\Database;
+use Longman\Crawler\Entities\Project;
 use Longman\Crawler\Profiles\DomainCrawlProfile;
 use Longman\Crawler\Profiles\UrlSubsetProfile;
 use Psr\Log\LoggerInterface;
@@ -130,11 +131,12 @@ class CrawlCommand extends Command
         $database = $container->get(Database::class);
 
         if (! $projectId) {
-            $projectId = $database->createCrawlProject($url);
+            $project = $database->createCrawlProject($url);
+            $projectId = $project->getId();
         }
 
         $crawlProject = $database->getCrawlProject($projectId);
-        $container->bind('crawl_project', static function () use ($crawlProject) {
+        $container->bind(Project::class, static function () use ($crawlProject): Project {
             return $crawlProject;
         });
 

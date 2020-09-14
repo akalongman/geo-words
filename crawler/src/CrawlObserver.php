@@ -6,6 +6,7 @@ namespace Longman\Crawler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Longman\Crawler\Entities\Project;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
@@ -37,9 +38,9 @@ class CrawlObserver extends BaseCrawlObserver
     private float $startTime;
     private int $startMemory;
     private ?int $crawlId;
-    private array $crawlProject;
+    private Project $crawlProject;
 
-    public function __construct(InputInterface $input, OutputInterface $output, array $crawlProject)
+    public function __construct(InputInterface $input, OutputInterface $output, Project $crawlProject)
     {
         $this->output = $output;
         $this->input = $input;
@@ -52,7 +53,7 @@ class CrawlObserver extends BaseCrawlObserver
     public function willCrawl(UriInterface $url)
     {
         $database = $this->getDatabase();
-        $this->crawlId = $database->createCrawlerRecord($this->crawlProject['id'], (string) $url);
+        $this->crawlId = $database->createCrawlerRecord($this->crawlProject->getId(), (string) $url);
     }
 
     public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null)
@@ -89,7 +90,7 @@ class CrawlObserver extends BaseCrawlObserver
         $database = $this->getDatabase();
 
         $crawlProject = $this->getCrawlProject();
-        $words = $database->getWords($crawlProject['id']);
+        $words = $database->getWords($crawlProject->getId());
 
         $memory = $this->getMemoryUsage() - $this->startMemory;
         $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
@@ -161,7 +162,7 @@ class CrawlObserver extends BaseCrawlObserver
         $database = $this->getDatabase();
         $crawlProject = $this->getCrawlProject();
 
-        $database->saveWords($crawlProject['id'], $this->crawlId, $words);
+        $database->saveWords($crawlProject->getId(), $this->crawlId, $words);
     }
 
     private function parseGeorgianWords(string $content): array
@@ -223,8 +224,8 @@ class CrawlObserver extends BaseCrawlObserver
         return container()->get(Database::class);
     }
 
-    private function getCrawlProject(): array
+    private function getCrawlProject(): Project
     {
-        return container()->get('crawl_project');
+        return container()->get(Project::class);
     }
 }
