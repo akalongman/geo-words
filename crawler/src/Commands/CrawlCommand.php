@@ -184,18 +184,7 @@ class CrawlCommand extends Command
 
     private function createHttpClient(): Client
     {
-        /** @var \Psr\Log\LoggerInterface $logger */
-        //$logger = container()->get(LoggerInterface::class);
-
         $stack = HandlerStack::create(new CurlMultiHandler());
-
-        // Log all requests
-        /*$stack->push(
-            Middleware::log(
-                $logger,
-                new MessageFormatter()
-            )
-        );*/
 
         // Add retry policy
         $stack->push(Middleware::retry(static function (
@@ -234,7 +223,7 @@ class CrawlCommand extends Command
 
             return $shouldRetry;
         }, static function (int $numberOfRetries): int {
-            return 1000 * $numberOfRetries;
+            return 10000 * $numberOfRetries;
         }));
 
         $httpClient = new Client([
