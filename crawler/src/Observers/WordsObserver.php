@@ -13,12 +13,14 @@ use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Spatie\Crawler\CrawlObserver as BaseCrawlObserver;
 use Spatie\PdfToText\Pdf;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;
 use function count;
 use function file_exists;
+use function hash;
 use function md5;
 use function preg_match_all;
 use function preg_replace;
@@ -34,7 +36,6 @@ class WordsObserver extends BaseCrawlObserver
     private Database $database;
     private LoggerInterface $logger;
     private Project $crawlProject;
-    private ?int $crawlId;
 
     public function __construct(
         InputInterface $input,
@@ -48,22 +49,24 @@ class WordsObserver extends BaseCrawlObserver
         $this->database = $database;
         $this->logger = $logger;
         $this->crawlProject = $crawlProject;
-
-        $this->startTime = $this->getMicroTime();
-        $this->startMemory = $this->getMemoryUsage();
     }
 
     public function willCrawl(UriInterface $url): void
     {
-        $this->crawlId = $this->database->createCrawlerRecord($this->crawlProject->getId(), (string) $url);
+        $this->startTime = $this->getMicroTime();
+        $this->startMemory = $this->getMemoryUsage();
+        $this->database->createCrawlerRecord($this->getCrawlId($url), $this->crawlProject->getId(), (string) $url);
     }
 
     public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null): void
     {
+        if ($this->output->isVerbose()) {
+            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->getCrawlId($url) . '</comment>');
+        }
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $this->database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
+            $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
 
             return;
         }
@@ -80,7 +83,7 @@ class WordsObserver extends BaseCrawlObserver
                 break;
         }
 
-        $this->process($content);
+        $this->process($url, $content);
     }
 
     public function finishedCrawling(): void
@@ -95,27 +98,34 @@ class WordsObserver extends BaseCrawlObserver
 
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null): void
     {
-        $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
-        $this->output->writeln('<error>' . $requestException->getMessage() . '</error>');
-        $this->database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
+        $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
         $this->logger->error('Crawl request failed', [
             'url'       => (string) $url,
             'exception' => $requestException,
         ]);
+
+        if ($this->output->isVerbose()) {
+            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->getCrawlId($url) . '</comment>');
+        }
+        $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
+        $this->output->writeln('<info>Error:</info> <error>' . OutputFormatter::escape($requestException->getMessage()) . '</error>');
+        $this->output->writeln('<info>Memory:</info> <comment>' . $this->getMeasuredMemoryAsString() . '</comment>');
+        $this->output->writeln('<info>Time:</info> <comment>' . $this->getMeasuredTimeAsString() . '</comment>');
+        $this->output->writeln('- - -');
     }
 
-    private function process(string $content): void
+    private function process(UriInterface $url, string $content): void
     {
         $words = $this->parseGeorgianWords($content);
 
-        $this->saveWords($words);
+        $this->saveWords($url, $words);
 
         $this->output->writeln('<info>Words:</info> <comment>' . count($words) . '</comment>');
         $this->output->writeln('<info>Memory:</info> <comment>' . $this->getMeasuredMemoryAsString() . '</comment>');
         $this->output->writeln('<info>Time:</info> <comment>' . $this->getMeasuredTimeAsString() . '</comment>');
         $this->output->writeln('- - -');
 
-        $this->database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_PROCESSED, count($words), '');
+        $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_PROCESSED, count($words), '');
     }
 
     private function getContentsFromPdf(UriInterface $url): string
@@ -143,13 +153,20 @@ class WordsObserver extends BaseCrawlObserver
         return (string) $text;
     }
 
-    private function saveWords(array $words): void
+    private function saveWords(UriInterface $url, array $words): void
     {
         if (empty($words)) {
             return;
         }
 
-        $this->database->saveWords($this->crawlProject->getId(), $this->crawlId, $words);
+        $this->database->saveWords($this->crawlProject->getId(), $this->getCrawlId($url), $words);
+    }
+
+    private function getCrawlId(UriInterface $url): string
+    {
+        $string = (string) $this->crawlProject->getId() . '|' . (string) $url;
+
+        return hash('sha256', $string);
     }
 
     private function parseGeorgianWords(string $content): array

@@ -1,17 +1,19 @@
 <?php
 declare(strict_types=1);
 
+use Phinx\Db\Adapter\MysqlAdapter;
 use Phinx\Migration\AbstractMigration;
 
 final class CreateCrawlsTable extends AbstractMigration
 {
     public function change(): void
     {
-        $table = $this->table('crawls', ['signed' => false]);
+        $table = $this->table('crawls', ['id' => false, 'primary_key' => 'id']);
         $table
+            ->addColumn('id', 'string', ['limit' => 64])
             ->addColumn('project_id', 'integer', ['signed' => false])
             ->addColumn('url', 'string', ['limit' => 1000])
-            ->addColumn('msg', 'string', ['limit' => 1000, 'null' => true])
+            ->addColumn('msg', 'text', ['limit' => MysqlAdapter::TEXT_REGULAR, 'null' => true])
             ->addColumn('words', 'integer', ['signed' => false, 'default' => 0])
             ->addColumn('status', 'tinyinteger', ['signed' => false, 'default' => 0])
             ->addColumn('created_at', 'timestamp', ['null' => true, 'precision' => 3])

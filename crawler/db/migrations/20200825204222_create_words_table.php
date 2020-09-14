@@ -12,7 +12,7 @@ final class CreateWordsTable extends AbstractMigration
         $table
             ->addColumn('word', 'string', ['limit' => 100])
             ->addColumn('project_id', 'integer', ['signed' => false])
-            ->addColumn('crawl_id', 'integer', ['signed' => false])
+            ->addColumn('crawl_id', 'string', ['limit' => 64])
             ->addColumn('occurrences', 'integer', ['signed' => false, 'default' => 1])
             ->addColumn('created_at', 'timestamp', ['null' => true, 'precision' => 3])
             ->addColumn('updated_at', 'timestamp', ['null' => true, 'precision' => 3])

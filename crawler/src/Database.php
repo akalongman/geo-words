@@ -71,14 +71,15 @@ class Database
         return $project;
     }
 
-    public function createCrawlerRecord(int $projectId, string $url): int
+    public function createCrawlerRecord(string $id, int $projectId, string $url): int
     {
         $st = $this->db->prepare('INSERT INTO `crawls`
-                (`project_id`, `url`, `status`, `created_at`, `updated_at`)
+                (`id`, `project_id`, `url`, `status`, `created_at`, `updated_at`)
                 VALUES
-                (:project_id, :url, :status, :created_at, :updated_at);
+                (:id, :project_id, :url, :status, :created_at, :updated_at);
             ');
 
+        $st->bindValue(':id', $id);
         $st->bindValue(':project_id', $projectId);
         $st->bindValue(':url', $url);
         $st->bindValue(':status', self::CRAWL_STATUS_PENDING);
@@ -89,11 +90,11 @@ class Database
         return (int) $this->db->lastInsertId();
     }
 
-    public function updateCrawlerRecord(int $id, int $status, int $words, string $msg)
+    public function updateCrawlerRecord(string $id, int $status, int $words, string $msg)
     {
         $st = $this->db->prepare('UPDATE `crawls` SET
                 `status`=:status, `words`=:words, `msg`=:msg, `updated_at`=:updated_at
-                WHERE `id`=' . $id . '
+                WHERE `id`="' . $id . '"
                 ;
             ');
 
@@ -135,7 +136,7 @@ class Database
         return $words;
     }
 
-    public function saveWords(int $projectId, int $crawlId, array $words): void
+    public function saveWords(int $projectId, string $crawlId, array $words): void
     {
         if (empty($words)) {
             return;
@@ -155,7 +156,7 @@ class Database
         return $this->db;
     }
 
-    private function insertWords(int $projectId, int $crawlId, array $words): void
+    private function insertWords(int $projectId, string $crawlId, array $words): void
     {
         $date = Carbon::now()->toDateTimeString('µ');
 
