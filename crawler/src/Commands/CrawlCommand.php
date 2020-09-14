@@ -13,11 +13,11 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
-use Longman\Crawler\Observers\WordsObserver;
 use Longman\Crawler\CrawlQueues\DatabaseCrawlQueue;
 use Longman\Crawler\CrawlQueues\RedisCrawlQueue;
 use Longman\Crawler\Database;
 use Longman\Crawler\Entities\Project;
+use Longman\Crawler\Observers\WordsObserver;
 use Longman\Crawler\Profiles\DomainCrawlProfile;
 use Longman\Crawler\Profiles\UrlSubsetProfile;
 use Psr\Log\LoggerInterface;
@@ -158,7 +158,7 @@ class CrawlCommand extends Command
                 if (empty($subset)) {
                     $this->output->writeln('<error>URL subset is not specified</error>');
 
-                    exit();
+                    exit;
                 }
                 $this->output->writeln('<info>URL Subset:</info> <comment>' . $subset . '</comment>');
                 $crawler->setCrawlProfile(new UrlSubsetProfile($subset));
@@ -169,7 +169,7 @@ class CrawlCommand extends Command
                 if (empty($domain)) {
                     $this->output->writeln('<error>Domain is not specified</error>');
 
-                    exit();
+                    exit;
                 }
                 $this->output->writeln('<info>Domain:</info> <comment>' . $domain . '</comment>');
                 $crawler->setCrawlProfile(new DomainCrawlProfile($domain));
@@ -180,7 +180,6 @@ class CrawlCommand extends Command
                 $crawler->setCrawlProfile(new CrawlInternalUrls($url));
                 break;
         }
-
     }
 
     private function createHttpClient(): Client

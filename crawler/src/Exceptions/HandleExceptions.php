@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Longman\Crawler\Exceptions;
 
 use ErrorException;
-use Exception;
 use Psr\Log\LoggerInterface;
 use Sentry\State\HubInterface;
 use Symfony\Component\ErrorHandler\Error\FatalError;
@@ -15,6 +14,9 @@ use function error_get_last;
 use function error_reporting;
 use function in_array;
 use function is_null;
+use function register_shutdown_function;
+use function set_error_handler;
+use function set_exception_handler;
 use function str_repeat;
 
 use const E_COMPILE_ERROR;
@@ -60,7 +62,7 @@ class HandleExceptions
             if ($this->sentry) {
                 $this->sentry->captureException($e);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             //
         }
 
@@ -69,7 +71,8 @@ class HandleExceptions
 
     public function handleShutdown(): void
     {
-        if (! is_null($error = error_get_last()) && $this->isFatal($error['type'])) {
+        $error = error_get_last();
+        if (! is_null($error) && $this->isFatal($error['type'])) {
             $this->handleException($this->fatalErrorFromPhpError($error, 0));
         }
     }
