@@ -53,12 +53,12 @@ class WordsObserver extends BaseCrawlObserver
         $this->startMemory = $this->getMemoryUsage();
     }
 
-    public function willCrawl(UriInterface $url)
+    public function willCrawl(UriInterface $url): void
     {
         $this->crawlId = $this->database->createCrawlerRecord($this->crawlProject->getId(), (string) $url);
     }
 
-    public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null)
+    public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null): void
     {
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
@@ -83,18 +83,17 @@ class WordsObserver extends BaseCrawlObserver
         $this->process($content);
     }
 
-    public function finishedCrawling()
+    public function finishedCrawling(): void
     {
         $this->output->writeln('<info>Crawling is finished</info>');
 
         $words = $this->database->getWords($this->crawlProject->getId());
 
-        $memory = $this->getMemoryUsage() - $this->startMemory;
         $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
-        $this->output->writeln('<info>Total Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
+        $this->output->writeln('<info>Total Memory:</info> <comment>' . $this->getMeasuredMemoryAsString() . '</comment>');
     }
 
-    public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null)
+    public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null): void
     {
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         $this->output->writeln('<error>' . $requestException->getMessage() . '</error>');
@@ -112,11 +111,8 @@ class WordsObserver extends BaseCrawlObserver
         $this->saveWords($words);
 
         $this->output->writeln('<info>Words:</info> <comment>' . count($words) . '</comment>');
-
-        $memory = $this->getMemoryUsage() - $this->startMemory;
-        $this->output->writeln('<info>Memory:</info> <comment>' . ($memory / 1024) . 'Kb</comment>');
-        $time = $this->getMeasuredTimeAsString();
-        $this->output->writeln('<info>Time:</info> <comment>' . $time . '</comment>');
+        $this->output->writeln('<info>Memory:</info> <comment>' . $this->getMeasuredMemoryAsString() . '</comment>');
+        $this->output->writeln('<info>Time:</info> <comment>' . $this->getMeasuredTimeAsString() . '</comment>');
         $this->output->writeln('- - -');
 
         $this->database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_PROCESSED, count($words), '');
