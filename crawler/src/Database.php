@@ -82,8 +82,8 @@ class Database
         $st->bindValue(':project_id', $projectId);
         $st->bindValue(':url', $url);
         $st->bindValue(':status', self::CRAWL_STATUS_PENDING);
-        $st->bindValue(':created_at', Carbon::now());
-        $st->bindValue(':updated_at', Carbon::now());
+        $st->bindValue(':created_at', Carbon::now()->toDateTimeString('µ'));
+        $st->bindValue(':updated_at', Carbon::now()->toDateTimeString('µ'));
         $st->execute();
 
         return (int) $this->db->lastInsertId();
@@ -100,7 +100,7 @@ class Database
         $st->bindValue(':status', $status);
         $st->bindValue(':words', $words);
         $st->bindValue(':msg', $msg);
-        $st->bindValue(':updated_at', Carbon::now());
+        $st->bindValue(':updated_at', Carbon::now()->toDateTimeString('µ'));
         $st->execute();
     }
 
@@ -157,7 +157,7 @@ class Database
 
     private function insertWords(int $projectId, int $crawlId, array $words): void
     {
-        $date = Carbon::now();
+        $date = Carbon::now()->toDateTimeString('µ');
 
         $values = [];
         $inserts = [];
