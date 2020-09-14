@@ -13,7 +13,7 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
-use Longman\Crawler\CrawlObserver;
+use Longman\Crawler\Observers\WordsObserver;
 use Longman\Crawler\CrawlQueues\DatabaseCrawlQueue;
 use Longman\Crawler\CrawlQueues\RedisCrawlQueue;
 use Longman\Crawler\Database;
@@ -46,8 +46,10 @@ class CrawlCommand extends Command
     private const QUEUE_ARRAY = 'array';
     private const QUEUE_REDIS = 'redis';
     private const QUEUE_DATABASE = 'database';
-
     private const CONCURRENCY_DEFAULT = 10;
+
+    private InputInterface $input;
+    private OutputInterface $output;
 
     protected function configure(): void
     {
@@ -62,6 +64,7 @@ class CrawlCommand extends Command
                 . PHP_EOL . self::PROFILE_INTERNAL . ' (default) - this profile will only crawl the internal urls on the pages of a host.'
                 . PHP_EOL . self::PROFILE_ALL . ' - this profile will crawl all urls on all pages including urls to an external site.'
                 . PHP_EOL . self::PROFILE_DOMAIN . ' - this profile will crawl all urls with given domain. --domain option should be passed')
+            ->addOption('observer', 'o', InputOption::VALUE_OPTIONAL, 'The observer')
             ->addOption('domain', 'd', InputOption::VALUE_OPTIONAL, 'Domain for matching parse urls, e.g. "ge"')
             ->addOption('subset', 's', InputOption::VALUE_OPTIONAL, 'URL subset for matching parse urls')
             ->addOption(
@@ -74,11 +77,14 @@ class CrawlCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->input = $input;
+        $this->output = $output;
         $url = $input->getArgument('url');
         $concurrency = $input->getOption('concurrency');
         $concurrency = $concurrency ? intval($concurrency) : self::CONCURRENCY_DEFAULT;
         $profile = $input->getOption('profile');
         $queue = $input->getOption('queue');
+        $observer = $input->getOption('observer');
         $projectId = (int) $input->getOption('project-id');
 
         $output->writeln('<info>Start crawling of:</info> <comment>' . $url . '</comment>');
@@ -93,56 +99,27 @@ class CrawlCommand extends Command
         $crawler->doNotExecuteJavaScript();
         $crawler->setParseableMimeTypes(['text/html', 'text/plain', 'text/json', 'application/pdf']);
 
-        switch ($profile) {
-            case self::PROFILE_ALL:
-                $crawler->setCrawlProfile(new CrawlAllUrls());
-                break;
-
-            case self::PROFILE_SUBSET:
-                $subset = $input->getOption('subset');
-                if (empty($subset)) {
-                    $output->writeln('<error>URL subset is not specified</error>');
-
-                    return 1;
-                }
-                $output->writeln('<info>URL Subset:</info> <comment>' . $subset . '</comment>');
-                $crawler->setCrawlProfile(new UrlSubsetProfile($subset));
-                break;
-
-            case self::PROFILE_DOMAIN:
-                $domain = $input->getOption('domain');
-                if (empty($domain)) {
-                    $output->writeln('<error>Domain is not specified</error>');
-
-                    return 1;
-                }
-                $output->writeln('<info>Domain:</info> <comment>' . $domain . '</comment>');
-                $crawler->setCrawlProfile(new DomainCrawlProfile($domain));
-                break;
-
-            case self::PROFILE_INTERNAL:
-            default:
-                $crawler->setCrawlProfile(new CrawlInternalUrls($url));
-                break;
-        }
+        $this->setProfile($crawler, $url, $profile);
 
         $container = container();
         /** @var \Longman\Crawler\Database $database */
         $database = $container->get(Database::class);
+        /** @var \Psr\Log\LoggerInterface $logger */
+        $logger = $container->get(LoggerInterface::class);
 
         if (! $projectId) {
-            $project = $database->createCrawlProject($url);
-            $projectId = $project->getId();
+            $crawlProject = $database->createCrawlProject($url);
+        } else {
+            $crawlProject = $database->getCrawlProject($projectId);
         }
 
-        $crawlProject = $database->getCrawlProject($projectId);
         $container->bind(Project::class, static function () use ($crawlProject): Project {
             return $crawlProject;
         });
 
-        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $projectId . '</comment>');
+        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $crawlProject->getId() . '</comment>');
 
-        $observer = new CrawlObserver($input, $output, $crawlProject);
+        $observer = new WordsObserver($input, $output, $database, $logger, $crawlProject);
 
         $crawler->setConcurrency($concurrency);
         $crawler->setCrawlObserver($observer);
@@ -167,6 +144,43 @@ class CrawlCommand extends Command
         $crawler->startCrawling($url);
 
         return 0;
+    }
+
+    private function setProfile(Crawler $crawler, string $url, ?string $profile): void
+    {
+        switch ($profile) {
+            case self::PROFILE_ALL:
+                $crawler->setCrawlProfile(new CrawlAllUrls());
+                break;
+
+            case self::PROFILE_SUBSET:
+                $subset = $this->input->getOption('subset');
+                if (empty($subset)) {
+                    $this->output->writeln('<error>URL subset is not specified</error>');
+
+                    exit();
+                }
+                $this->output->writeln('<info>URL Subset:</info> <comment>' . $subset . '</comment>');
+                $crawler->setCrawlProfile(new UrlSubsetProfile($subset));
+                break;
+
+            case self::PROFILE_DOMAIN:
+                $domain = $this->input->getOption('domain');
+                if (empty($domain)) {
+                    $this->output->writeln('<error>Domain is not specified</error>');
+
+                    exit();
+                }
+                $this->output->writeln('<info>Domain:</info> <comment>' . $domain . '</comment>');
+                $crawler->setCrawlProfile(new DomainCrawlProfile($domain));
+                break;
+
+            case self::PROFILE_INTERNAL:
+            default:
+                $crawler->setCrawlProfile(new CrawlInternalUrls($url));
+                break;
+        }
+
     }
 
     private function createHttpClient(): Client

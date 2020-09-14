@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Longman\Crawler;
+namespace Longman\Crawler\Observers;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Longman\Crawler\Database;
 use Longman\Crawler\Entities\Project;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -16,34 +17,36 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;
-use function container;
 use function count;
-use function explode;
 use function file_exists;
-use function gmdate;
-use function localeconv;
 use function md5;
-use function memory_get_usage;
-use function microtime;
 use function preg_match_all;
 use function preg_replace;
-use function substr;
 use function trim;
 use function unlink;
 
-class CrawlObserver extends BaseCrawlObserver
+class WordsObserver extends BaseCrawlObserver
 {
+    use MeasuresTimeAndMemory;
+
     private InputInterface $input;
     private OutputInterface $output;
-    private float $startTime;
-    private int $startMemory;
-    private ?int $crawlId;
+    private Database $database;
+    private LoggerInterface $logger;
     private Project $crawlProject;
+    private ?int $crawlId;
 
-    public function __construct(InputInterface $input, OutputInterface $output, Project $crawlProject)
-    {
+    public function __construct(
+        InputInterface $input,
+        OutputInterface $output,
+        Database $database,
+        LoggerInterface $logger,
+        Project $crawlProject
+    ) {
         $this->output = $output;
         $this->input = $input;
+        $this->database = $database;
+        $this->logger = $logger;
         $this->crawlProject = $crawlProject;
 
         $this->startTime = $this->getMicroTime();
@@ -52,18 +55,15 @@ class CrawlObserver extends BaseCrawlObserver
 
     public function willCrawl(UriInterface $url)
     {
-        $database = $this->getDatabase();
-        $this->crawlId = $database->createCrawlerRecord($this->crawlProject->getId(), (string) $url);
+        $this->crawlId = $this->database->createCrawlerRecord($this->crawlProject->getId(), (string) $url);
     }
 
     public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null)
     {
-        $database = $this->getDatabase();
-
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
+            $this->database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
 
             return;
         }
@@ -87,10 +87,7 @@ class CrawlObserver extends BaseCrawlObserver
     {
         $this->output->writeln('<info>Crawling is finished</info>');
 
-        $database = $this->getDatabase();
-
-        $crawlProject = $this->getCrawlProject();
-        $words = $database->getWords($crawlProject->getId());
+        $words = $this->database->getWords($this->crawlProject->getId());
 
         $memory = $this->getMemoryUsage() - $this->startMemory;
         $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
@@ -101,10 +98,8 @@ class CrawlObserver extends BaseCrawlObserver
     {
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         $this->output->writeln('<error>' . $requestException->getMessage() . '</error>');
-        $this->getDatabase()->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
-        /** @var \Psr\Log\LoggerInterface $logger */
-        $logger = container()->get(LoggerInterface::class);
-        $logger->error('Crawl request failed', [
+        $this->database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
+        $this->logger->error('Crawl request failed', [
             'url'       => (string) $url,
             'exception' => $requestException,
         ]);
@@ -124,8 +119,7 @@ class CrawlObserver extends BaseCrawlObserver
         $this->output->writeln('<info>Time:</info> <comment>' . $time . '</comment>');
         $this->output->writeln('- - -');
 
-        $database = $this->getDatabase();
-        $database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_PROCESSED, count($words), '');
+        $this->database->updateCrawlerRecord($this->crawlId, Database::CRAWL_STATUS_PROCESSED, count($words), '');
     }
 
     private function getContentsFromPdf(UriInterface $url): string
@@ -159,10 +153,7 @@ class CrawlObserver extends BaseCrawlObserver
             return;
         }
 
-        $database = $this->getDatabase();
-        $crawlProject = $this->getCrawlProject();
-
-        $database->saveWords($crawlProject->getId(), $this->crawlId, $words);
+        $this->database->saveWords($this->crawlProject->getId(), $this->crawlId, $words);
     }
 
     private function parseGeorgianWords(string $content): array
@@ -196,36 +187,5 @@ class CrawlObserver extends BaseCrawlObserver
         }
 
         return true;
-    }
-
-    private function getMemoryUsage(): int
-    {
-        return memory_get_usage(true);
-    }
-
-    private function getMicroTime(): float
-    {
-        return microtime(true);
-    }
-
-    private function getMeasuredTimeAsString(): string
-    {
-        $localeInfo = localeconv();
-        $point = $localeInfo['decimal_point'] ?? '.';
-
-        $time = $this->getMicroTime() - $this->startTime;
-        [$sec, $usec] = explode($point, (string) $time);
-
-        return gmdate('H:i:s', (int) $sec) . '.' . substr($usec, 0, 4);
-    }
-
-    private function getDatabase(): Database
-    {
-        return container()->get(Database::class);
-    }
-
-    private function getCrawlProject(): Project
-    {
-        return container()->get(Project::class);
     }
 }
