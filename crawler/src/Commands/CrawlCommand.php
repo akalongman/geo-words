@@ -17,6 +17,7 @@ use Longman\Crawler\CrawlQueues\DatabaseCrawlQueue;
 use Longman\Crawler\CrawlQueues\RedisCrawlQueue;
 use Longman\Crawler\Database;
 use Longman\Crawler\Entities\Project;
+use Longman\Crawler\Observers\ErrorsObserver;
 use Longman\Crawler\Observers\WordsObserver;
 use Longman\Crawler\Profiles\DomainCrawlProfile;
 use Longman\Crawler\Profiles\UrlSubsetProfile;
@@ -43,13 +44,20 @@ class CrawlCommand extends Command
     private const PROFILE_ALL = 'all';
     private const PROFILE_DOMAIN = 'domain';
     private const PROFILE_SUBSET = 'subset';
+
     private const QUEUE_ARRAY = 'array';
     private const QUEUE_REDIS = 'redis';
     private const QUEUE_DATABASE = 'database';
+
+    private const OBSERVER_WORDS = 'words';
+    private const OBSERVER_ERRORS = 'errors';
+
     private const CONCURRENCY_DEFAULT = 10;
 
     private InputInterface $input;
     private OutputInterface $output;
+    private Database $database;
+    private LoggerInterface $logger;
 
     protected function configure(): void
     {
@@ -102,48 +110,78 @@ class CrawlCommand extends Command
         $this->setProfile($crawler, $url, $profile);
 
         $container = container();
-        /** @var \Longman\Crawler\Database $database */
-        $database = $container->get(Database::class);
-        /** @var \Psr\Log\LoggerInterface $logger */
-        $logger = $container->get(LoggerInterface::class);
+        $this->database = $container->get(Database::class);
+        $this->logger = $container->get(LoggerInterface::class);
 
         if (! $projectId) {
-            $crawlProject = $database->createCrawlProject($url);
+            $crawlProject = $this->database->createCrawlProject($url);
         } else {
-            $crawlProject = $database->getCrawlProject($projectId);
+            $crawlProject = $this->database->getCrawlProject($projectId);
         }
 
         $container->bind(Project::class, static function () use ($crawlProject): Project {
             return $crawlProject;
         });
 
-        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $crawlProject->getId() . '</comment>');
-
-        $observer = new WordsObserver($input, $output, $database, $logger, $crawlProject);
+        $this->setObserver($crawler, $crawlProject, $observer);
 
         $crawler->setConcurrency($concurrency);
-        $crawler->setCrawlObserver($observer);
 
-        switch ($queue) {
-            case self::QUEUE_REDIS:
-                $crawler->setCrawlQueue(new RedisCrawlQueue());
-                break;
+        $this->setQueue($crawler, $queue);
 
-            case self::QUEUE_DATABASE:
-                $crawler->setCrawlQueue(new DatabaseCrawlQueue($database));
-                break;
-
-            case self::QUEUE_ARRAY:
-            default:
-                $crawler->setCrawlQueue(new ArrayCrawlQueue());
-                break;
-        }
+        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $crawlProject->getId() . '</comment>');
 
         $output->writeln('- - -');
 
         $crawler->startCrawling($url);
 
         return 0;
+    }
+
+    private function setObserver(Crawler $crawler, Project $crawlProject, ?string $observer): void
+    {
+        switch ($observer) {
+            case self::OBSERVER_ERRORS:
+                $this->output->writeln('<info>Observer:</info> <comment>' . self::OBSERVER_ERRORS . '</comment>');
+
+                $crawler->setCrawlObserver(
+                    new ErrorsObserver($this->input, $this->output, $this->database, $this->logger, $crawlProject)
+                );
+                break;
+
+            case self::OBSERVER_WORDS:
+            default:
+                $this->output->writeln('<info>Observer:</info> <comment>' . self::OBSERVER_WORDS . '</comment>');
+
+                $crawler->setCrawlObserver(
+                    new WordsObserver($this->input, $this->output, $this->database, $this->logger, $crawlProject)
+                );
+                break;
+        }
+    }
+
+    private function setQueue(Crawler $crawler, ?string $queue): void
+    {
+        switch ($queue) {
+            case self::QUEUE_REDIS:
+                $this->output->writeln('<info>Queue:</info> <comment>' . self::QUEUE_REDIS . '</comment>');
+
+                $crawler->setCrawlQueue(new RedisCrawlQueue());
+                break;
+
+            case self::QUEUE_DATABASE:
+                $this->output->writeln('<info>Queue:</info> <comment>' . self::QUEUE_DATABASE . '</comment>');
+
+                $crawler->setCrawlQueue(new DatabaseCrawlQueue($this->database));
+                break;
+
+            case self::QUEUE_ARRAY:
+            default:
+                $this->output->writeln('<info>Queue:</info> <comment>' . self::QUEUE_ARRAY . '</comment>');
+
+                $crawler->setCrawlQueue(new ArrayCrawlQueue());
+                break;
+        }
     }
 
     private function setProfile(Crawler $crawler, string $url, ?string $profile): void
@@ -187,7 +225,7 @@ class CrawlCommand extends Command
         $stack = HandlerStack::create(new CurlMultiHandler());
 
         // Add retry policy
-        $stack->push(Middleware::retry(static function (
+        $stack->push(Middleware::retry(function (
             int $retries,
             Request $request,
             ?Response $response = null,
@@ -209,7 +247,7 @@ class CrawlCommand extends Command
 
             // Log if we are retrying
             if ($shouldRetry) {
-                container()->get(LoggerInterface::class)->notice(
+                $this->logger->notice(
                     sprintf(
                         'Retrying %s %s %s/5, %s',
                         $request->getMethod(),
