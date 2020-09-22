@@ -739,7 +739,7 @@
         },
         {
             "name": "illuminate/container",
-            "version": "v7.28.1",
+            "version": "v7.28.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/container.git",
@@ -786,7 +786,7 @@
         },
         {
             "name": "illuminate/contracts",
-            "version": "v7.28.1",
+            "version": "v7.28.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/contracts.git",
@@ -830,7 +830,7 @@
         },
         {
             "name": "illuminate/support",
-            "version": "v7.28.1",
+            "version": "v7.28.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/support.git",
@@ -1165,16 +1165,16 @@
         },
         {
             "name": "league/mime-type-detection",
-            "version": "1.4.0",
+            "version": "1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/mime-type-detection.git",
-                "reference": "fda190b62b962d96a069fcc414d781db66d65b69"
+                "reference": "ea2fbfc988bade315acd5967e6d02274086d0f28"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/mime-type-detection/zipball/fda190b62b962d96a069fcc414d781db66d65b69",
-                "reference": "fda190b62b962d96a069fcc414d781db66d65b69",
+                "url": "https://api.github.com/repos/thephpleague/mime-type-detection/zipball/ea2fbfc988bade315acd5967e6d02274086d0f28",
+                "reference": "ea2fbfc988bade315acd5967e6d02274086d0f28",
                 "shasum": ""
             },
             "require": {
@@ -1212,7 +1212,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-08-09T10:34:01+00:00"
+            "time": "2020-09-21T18:10:53+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -1307,16 +1307,16 @@
         },
         {
             "name": "nesbot/carbon",
-            "version": "2.39.2",
+            "version": "2.40.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/briannesbitt/Carbon.git",
-                "reference": "326efde1bc09077a26cb77f6e2e32e13f06c27f2"
+                "reference": "6c7646154181013ecd55e80c201b9fd873c6ee5d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/briannesbitt/Carbon/zipball/326efde1bc09077a26cb77f6e2e32e13f06c27f2",
-                "reference": "326efde1bc09077a26cb77f6e2e32e13f06c27f2",
+                "url": "https://api.github.com/repos/briannesbitt/Carbon/zipball/6c7646154181013ecd55e80c201b9fd873c6ee5d",
+                "reference": "6c7646154181013ecd55e80c201b9fd873c6ee5d",
                 "shasum": ""
             },
             "require": {
@@ -1392,7 +1392,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-09-10T12:16:42+00:00"
+            "time": "2020-09-11T19:00:58+00:00"
         },
         {
             "name": "nicmart/tree",
@@ -1616,16 +1616,16 @@
         },
         {
             "name": "php-http/discovery",
-            "version": "1.10.0",
+            "version": "1.11.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-http/discovery.git",
-                "reference": "88ff14cad4a0db68b343260fa7ac3f1599703660"
+                "reference": "87b580cd54244512ba931fe1e3b0b506e5a00dd6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-http/discovery/zipball/88ff14cad4a0db68b343260fa7ac3f1599703660",
-                "reference": "88ff14cad4a0db68b343260fa7ac3f1599703660",
+                "url": "https://api.github.com/repos/php-http/discovery/zipball/87b580cd54244512ba931fe1e3b0b506e5a00dd6",
+                "reference": "87b580cd54244512ba931fe1e3b0b506e5a00dd6",
                 "shasum": ""
             },
             "require": {
@@ -1677,7 +1677,7 @@
                 "message",
                 "psr7"
             ],
-            "time": "2020-09-04T08:41:23+00:00"
+            "time": "2020-09-22T06:59:55+00:00"
         },
         {
             "name": "php-http/httplug",
@@ -2494,16 +2494,16 @@
         },
         {
             "name": "spatie/browsershot",
-            "version": "3.37.2",
+            "version": "3.38.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/browsershot.git",
-                "reference": "32d2984079ed8fe690f4dc5b7b6c205ae0a7b0fd"
+                "reference": "97ebb1dc0750f9c543162cb1e44d5b4916b17a7c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/browsershot/zipball/32d2984079ed8fe690f4dc5b7b6c205ae0a7b0fd",
-                "reference": "32d2984079ed8fe690f4dc5b7b6c205ae0a7b0fd",
+                "url": "https://api.github.com/repos/spatie/browsershot/zipball/97ebb1dc0750f9c543162cb1e44d5b4916b17a7c",
+                "reference": "97ebb1dc0750f9c543162cb1e44d5b4916b17a7c",
                 "shasum": ""
             },
             "require": {
@@ -2552,7 +2552,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-07-21T22:40:58+00:00"
+            "time": "2020-09-22T06:26:15+00:00"
         },
         {
             "name": "spatie/crawler",
@@ -4461,16 +4461,16 @@
         },
         {
             "name": "vlucas/phpdotenv",
-            "version": "v5.1.0",
+            "version": "v5.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vlucas/phpdotenv.git",
-                "reference": "448c76d7a9e30c341ff5bc367a923af74ae18467"
+                "reference": "fba64139db67123c7a57072e5f8d3db10d160b66"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/448c76d7a9e30c341ff5bc367a923af74ae18467",
-                "reference": "448c76d7a9e30c341ff5bc367a923af74ae18467",
+                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/fba64139db67123c7a57072e5f8d3db10d160b66",
+                "reference": "fba64139db67123c7a57072e5f8d3db10d160b66",
                 "shasum": ""
             },
             "require": {
@@ -4493,7 +4493,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "5.1-dev"
+                    "dev-master": "5.2-dev"
                 }
             },
             "autoload": {
@@ -4533,7 +4533,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-07-14T19:26:25+00:00"
+            "time": "2020-09-14T15:57:31+00:00"
         },
         {
             "name": "voku/portable-ascii",

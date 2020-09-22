@@ -25,7 +25,7 @@ Install composer dependencies:
 
 And run migrations:
 
-    vendor/bin/phinx migrate  
+    composer migrate  
 
 Usage: `php cmd crawl "http://www.nplg.gov.ge/gwdict/index.php"`
 
