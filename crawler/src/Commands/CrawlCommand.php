@@ -6,7 +6,6 @@ namespace Longman\Crawler\Commands;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\CurlMultiHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -31,6 +30,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 use function container;
 use function intval;
@@ -229,7 +229,7 @@ class CrawlCommand extends Command
             int $retries,
             Request $request,
             ?Response $response = null,
-            ?RequestException $exception = null
+            ?Throwable $exception = null
         ): bool {
             if ($retries >= 5) {
                 return false;
