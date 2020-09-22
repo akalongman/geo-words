@@ -24,6 +24,6 @@ final class CreateCrawlsTable extends AbstractMigration
         $this->execute('ALTER TABLE `crawls` MODIFY COLUMN `created_at` TIMESTAMP(3)
             NULL DEFAULT CURRENT_TIMESTAMP(3)');
         $this->execute('ALTER TABLE `crawls` MODIFY COLUMN `updated_at` TIMESTAMP(3)
-            NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)');
+            NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3)');
     }
 }
