@@ -15,11 +15,22 @@ use Spatie\Crawler\CrawlObserver as BaseCrawlObserver;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpFoundation\UrlHelper;
 
 use function count;
+use function curl_close;
+use function curl_exec;
+use function curl_getinfo;
+use function curl_init;
+use function curl_setopt;
+use function implode;
 use function preg_match_all;
 use function preg_replace;
+
+use const CURLINFO_HTTP_CODE;
+use const CURLOPT_FAILONERROR;
+use const CURLOPT_NOBODY;
+use const CURLOPT_RETURNTRANSFER;
+use const CURLOPT_URL;
 
 class ErrorsObserver extends BaseCrawlObserver
 {
@@ -60,8 +71,12 @@ class ErrorsObserver extends BaseCrawlObserver
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0,
-                'Response is empty');
+            $this->database->updateCrawlerRecord(
+                $this->database->getCrawlId($this->crawlProject, $url),
+                Database::CRAWL_STATUS_ERRORED,
+                0,
+                'Response is empty'
+            );
 
             return;
         }
@@ -130,8 +145,12 @@ class ErrorsObserver extends BaseCrawlObserver
         $this->output->writeln('<info>Time:</info> <comment>' . $this->getMeasuredTimeAsString() . '</comment>');
         $this->output->writeln('- - -');
         if (! empty($errors)) {
-            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0,
-                'Found missing images: ' . implode(', ', $errors));
+            $this->database->updateCrawlerRecord(
+                $this->database->getCrawlId($this->crawlProject, $url),
+                Database::CRAWL_STATUS_ERRORED,
+                0,
+                'Found missing images: ' . implode(', ', $errors)
+            );
         } else {
             $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_PROCESSED, 0, '');
         }

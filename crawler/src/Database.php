@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use InvalidArgumentException;
 use Longman\Crawler\Entities\Project;
 use PDO;
-
 use Psr\Http\Message\UriInterface;
 
 use function hash;
