@@ -58,6 +58,7 @@ class CrawlCommand extends Command
     private OutputInterface $output;
     private Database $database;
     private LoggerInterface $logger;
+    private Project $crawlProject;
 
     protected function configure(): void
     {
@@ -114,9 +115,9 @@ class CrawlCommand extends Command
         $this->logger = $container->get(LoggerInterface::class);
 
         if (! $projectId) {
-            $crawlProject = $this->database->createCrawlProject($url);
+            $this->crawlProject = $this->database->createCrawlProject($url);
         } else {
-            $crawlProject = $this->database->getCrawlProject($projectId);
+            $this->crawlProject = $this->database->getCrawlProject($projectId);
         }
 
         $container->bind(Project::class, static function () use ($crawlProject): Project {
@@ -232,6 +233,26 @@ class CrawlCommand extends Command
             ?Throwable $exception = null
         ): bool {
             if ($retries >= 5) {
+                // Log if retry limit reached
+                $this->logger->error(
+                    sprintf(
+                        'Retry limit %s reached for %s %s, %s',
+                        $retries + 1,
+                        $request->getMethod(),
+                        $request->getUri(),
+                        $response
+                            ? 'status code: ' . $response->getStatusCode()
+                            : $exception->getMessage()
+                    )
+                );
+
+                $this->database->updateCrawlerRecord(
+                    $this->database->getCrawlId($this->crawlProject, $request->getUri()),
+                    Database::CRAWL_STATUS_ERRORED,
+                    0,
+                    $exception ? $exception->getMessage() : 'unknown'
+                );
+
                 return false;
             }
 
@@ -253,8 +274,9 @@ class CrawlCommand extends Command
                         $request->getMethod(),
                         $request->getUri(),
                         $retries + 1,
-                        $response ? 'status code: ' . $response->getStatusCode() :
-                            $exception->getMessage()
+                        $response
+                            ? 'status code: ' . $response->getStatusCode()
+                            : $exception->getMessage()
                     )
                 );
             }

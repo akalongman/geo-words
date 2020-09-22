@@ -18,7 +18,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpFoundation\UrlHelper;
 
 use function count;
-use function hash;
 use function preg_match_all;
 use function preg_replace;
 
@@ -50,18 +49,19 @@ class ErrorsObserver extends BaseCrawlObserver
     {
         $this->startTime = $this->getMicroTime();
         $this->startMemory = $this->getMemoryUsage();
-        $this->database->createCrawlerRecord($this->getCrawlId($url), $this->crawlProject->getId(), (string) $url);
+        $this->database->createCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), $this->crawlProject->getId(), (string) $url);
     }
 
     public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null): void
     {
         if ($this->output->isVerbose()) {
-            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->getCrawlId($url) . '</comment>');
+            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->database->getCrawlId($this->crawlProject, $url) . '</comment>');
         }
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
+            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0,
+                'Response is empty');
 
             return;
         }
@@ -95,7 +95,7 @@ class ErrorsObserver extends BaseCrawlObserver
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null): void
     {
         $this->database->updateCrawlerRecord(
-            $this->getCrawlId($url),
+            $this->database->getCrawlId($this->crawlProject, $url),
             Database::CRAWL_STATUS_ERRORED,
             0,
             $requestException->getMessage()
@@ -106,7 +106,7 @@ class ErrorsObserver extends BaseCrawlObserver
         ]);
 
         if ($this->output->isVerbose()) {
-            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->getCrawlId($url) . '</comment>');
+            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->database->getCrawlId($this->crawlProject, $url) . '</comment>');
         }
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         $this->output->writeln('<info>Error:</info> <error>' . OutputFormatter::escape($requestException->getMessage()) . '</error>');
@@ -130,9 +130,10 @@ class ErrorsObserver extends BaseCrawlObserver
         $this->output->writeln('<info>Time:</info> <comment>' . $this->getMeasuredTimeAsString() . '</comment>');
         $this->output->writeln('- - -');
         if (! empty($errors)) {
-            $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_ERRORED, 0, 'Found missing images: ' . implode(', ', $errors));
+            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0,
+                'Found missing images: ' . implode(', ', $errors));
         } else {
-            $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_PROCESSED, 0, '');
+            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_PROCESSED, 0, '');
         }
     }
 
@@ -181,12 +182,5 @@ class ErrorsObserver extends BaseCrawlObserver
         } else {
             return false;
         }
-    }
-
-    private function getCrawlId(UriInterface $url): string
-    {
-        $string = (string) $this->crawlProject->getId() . '|' . (string) $url;
-
-        return hash('sha256', $string);
     }
 }

@@ -9,6 +9,9 @@ use InvalidArgumentException;
 use Longman\Crawler\Entities\Project;
 use PDO;
 
+use Psr\Http\Message\UriInterface;
+
+use function hash;
 use function implode;
 use function mt_rand;
 use function trim;
@@ -153,6 +156,13 @@ class Database
     public function getPdo(): PDO
     {
         return $this->db;
+    }
+
+    public function getCrawlId(Project $crawlProject, UriInterface $url): string
+    {
+        $string = (string) $crawlProject->getId() . '|' . (string) $url;
+
+        return hash('sha256', $string);
     }
 
     private function insertWords(int $projectId, string $crawlId, array $words): void

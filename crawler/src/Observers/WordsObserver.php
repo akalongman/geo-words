@@ -20,7 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function array_unique;
 use function count;
 use function file_exists;
-use function hash;
 use function md5;
 use function preg_match_all;
 use function preg_replace;
@@ -55,18 +54,18 @@ class WordsObserver extends BaseCrawlObserver
     {
         $this->startTime = $this->getMicroTime();
         $this->startMemory = $this->getMemoryUsage();
-        $this->database->createCrawlerRecord($this->getCrawlId($url), $this->crawlProject->getId(), (string) $url);
+        $this->database->createCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), $this->crawlProject->getId(), (string) $url);
     }
 
     public function crawled(UriInterface $url, ResponseInterface $response, ?UriInterface $foundOn = null): void
     {
         if ($this->output->isVerbose()) {
-            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->getCrawlId($url) . '</comment>');
+            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->database->getCrawlId($this->crawlProject, $url) . '</comment>');
         }
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
+            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
 
             return;
         }
@@ -98,14 +97,14 @@ class WordsObserver extends BaseCrawlObserver
 
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null): void
     {
-        $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
+        $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
         $this->logger->error('Crawl request failed', [
             'url'       => (string) $url,
             'exception' => $requestException,
         ]);
 
         if ($this->output->isVerbose()) {
-            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->getCrawlId($url) . '</comment>');
+            $this->output->writeln('<info>Crawl ID:</info> <comment>' . $this->database->getCrawlId($this->crawlProject, $url) . '</comment>');
         }
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         $this->output->writeln('<info>Error:</info> <error>' . OutputFormatter::escape($requestException->getMessage()) . '</error>');
@@ -125,7 +124,7 @@ class WordsObserver extends BaseCrawlObserver
         $this->output->writeln('<info>Time:</info> <comment>' . $this->getMeasuredTimeAsString() . '</comment>');
         $this->output->writeln('- - -');
 
-        $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_PROCESSED, count($words), '');
+        $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_PROCESSED, count($words), '');
     }
 
     private function getContentsFromPdf(UriInterface $url): string
@@ -159,14 +158,7 @@ class WordsObserver extends BaseCrawlObserver
             return;
         }
 
-        $this->database->saveWords($this->crawlProject->getId(), $this->getCrawlId($url), $words);
-    }
-
-    private function getCrawlId(UriInterface $url): string
-    {
-        $string = (string) $this->crawlProject->getId() . '|' . (string) $url;
-
-        return hash('sha256', $string);
+        $this->database->saveWords($this->crawlProject->getId(), $this->database->getCrawlId($this->crawlProject, $url), $words);
     }
 
     private function parseGeorgianWords(string $content): array
