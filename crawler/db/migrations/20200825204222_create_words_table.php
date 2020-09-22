@@ -22,6 +22,6 @@ final class CreateWordsTable extends AbstractMigration
         $this->execute('ALTER TABLE `words` MODIFY COLUMN `created_at` TIMESTAMP(3)
             NULL DEFAULT CURRENT_TIMESTAMP(3)');
         $this->execute('ALTER TABLE `words` MODIFY COLUMN `updated_at` TIMESTAMP(3)
-            NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)');
+            NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(3)');
     }
 }

@@ -94,7 +94,12 @@ class ErrorsObserver extends BaseCrawlObserver
 
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null): void
     {
-        $this->database->updateCrawlerRecord($this->getCrawlId($url), Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
+        $this->database->updateCrawlerRecord(
+            $this->getCrawlId($url),
+            Database::CRAWL_STATUS_ERRORED,
+            0,
+            $requestException->getMessage()
+        );
         $this->logger->error('Crawl request failed', [
             'url'       => (string) $url,
             'exception' => $requestException,

@@ -74,9 +74,9 @@ class Database
     public function createCrawlerRecord(string $id, int $projectId, string $url): int
     {
         $st = $this->db->prepare('INSERT INTO `crawls`
-                (`id`, `project_id`, `url`, `status`, `created_at`, `updated_at`)
+                (`id`, `project_id`, `url`, `status`, `created_at`)
                 VALUES
-                (:id, :project_id, :url, :status, :created_at, :updated_at);
+                (:id, :project_id, :url, :status, :created_at);
             ');
 
         $st->bindValue(':id', $id);
@@ -84,7 +84,6 @@ class Database
         $st->bindValue(':url', $url);
         $st->bindValue(':status', self::CRAWL_STATUS_PENDING);
         $st->bindValue(':created_at', Carbon::now()->toDateTimeString('µ'));
-        $st->bindValue(':updated_at', Carbon::now()->toDateTimeString('µ'));
         $st->execute();
 
         return (int) $this->db->lastInsertId();
@@ -169,12 +168,11 @@ class Database
             $inserts[] = $crawlId;
             $inserts[] = 1;
             $inserts[] = $date;
-            $inserts[] = $date;
         }
         $values = implode(', ', $values);
 
         $st = $this->db->prepare('INSERT INTO `words`
-                (`word`, `project_id`, `crawl_id`, `occurrences`, `created_at`, `updated_at`)
+                (`word`, `project_id`, `crawl_id`, `occurrences`, `created_at`)
                 VALUES
                 ' . $values . '
                 ON DUPLICATE KEY UPDATE `occurrences`=`occurrences`+1, `updated_at`="' . $date . '"
