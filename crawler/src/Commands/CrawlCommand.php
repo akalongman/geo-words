@@ -120,17 +120,17 @@ class CrawlCommand extends Command
             $this->crawlProject = $this->database->getCrawlProject($projectId);
         }
 
-        $container->bind(Project::class, static function () use ($crawlProject): Project {
-            return $crawlProject;
+        $container->bind(Project::class, static function (): Project {
+            return $this->crawlProject;
         });
 
-        $this->setObserver($crawler, $crawlProject, $observer);
+        $this->setObserver($crawler, $this->crawlProject, $observer);
 
         $crawler->setConcurrency($concurrency);
 
         $this->setQueue($crawler, $queue);
 
-        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $crawlProject->getId() . '</comment>');
+        $output->writeln('<info>Crawl Project ID:</info> <comment>' . $this->crawlProject->getId() . '</comment>');
 
         $output->writeln('- - -');
 
