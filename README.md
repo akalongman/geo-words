@@ -33,7 +33,9 @@ Help for options: `php cmd help crawl`
 
 ## TODO
 
-Fix wrong entries and add more words
+- Fix wrong entries and add more words
+- Add tests
+- Add notification sending on complete
 
 ## License
 
