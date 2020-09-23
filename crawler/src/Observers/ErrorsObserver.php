@@ -94,16 +94,12 @@ class ErrorsObserver extends BaseCrawlObserver
                 break;
         }
 
-        $this->process($url, $content);
+        $this->process($url, $response, $content);
     }
 
     public function finishedCrawling(): void
     {
         $this->output->writeln('<info>Crawling is finished</info>');
-
-        $words = $this->database->getWords($this->crawlProject->getId());
-
-        $this->output->writeln('<info>Total Words:</info> <comment>' . count($words) . '</comment>');
         $this->output->writeln('<info>Total Memory:</info> <comment>' . $this->getMeasuredMemoryAsString() . '</comment>');
     }
 
@@ -112,7 +108,7 @@ class ErrorsObserver extends BaseCrawlObserver
         $this->database->updateCrawlerRecord(
             $this->database->getCrawlId($this->crawlProject, $url),
             Database::CRAWL_STATUS_ERRORED,
-            0,
+            null,
             $requestException->getMessage()
         );
         $this->logger->error('Crawl request failed', [
@@ -130,7 +126,7 @@ class ErrorsObserver extends BaseCrawlObserver
         $this->output->writeln('- - -');
     }
 
-    private function process(UriInterface $url, string $content): void
+    private function process(UriInterface $url, ResponseInterface $response, string $content): void
     {
         $imgUrls = $this->getImgUrls($url, $content);
         $errors = [];
@@ -148,11 +144,16 @@ class ErrorsObserver extends BaseCrawlObserver
             $this->database->updateCrawlerRecord(
                 $this->database->getCrawlId($this->crawlProject, $url),
                 Database::CRAWL_STATUS_ERRORED,
-                0,
+                $response->getStatusCode(),
                 'Found missing images: ' . implode(', ', $errors)
             );
         } else {
-            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_PROCESSED, 0, '');
+            $this->database->updateCrawlerRecord(
+                $this->database->getCrawlId($this->crawlProject, $url),
+                Database::CRAWL_STATUS_PROCESSED,
+                $response->getStatusCode(),
+                null
+            );
         }
     }
 

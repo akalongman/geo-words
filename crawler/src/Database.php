@@ -91,16 +91,16 @@ class Database
         return (int) $this->db->lastInsertId();
     }
 
-    public function updateCrawlerRecord(string $id, int $status, int $words, string $msg)
+    public function updateCrawlerRecord(string $id, int $status, ?int $respCode, ?string $msg)
     {
         $st = $this->db->prepare('UPDATE `crawls` SET
-                `status`=:status, `words`=:words, `msg`=:msg, `updated_at`=:updated_at
+                `status`=:status, `resp_code`=:resp_code, `msg`=:msg, `updated_at`=:updated_at
                 WHERE `id`="' . $id . '"
                 ;
             ');
 
         $st->bindValue(':status', $status);
-        $st->bindValue(':words', $words);
+        $st->bindValue(':resp_code', $respCode);
         $st->bindValue(':msg', $msg);
         $st->bindValue(':updated_at', Carbon::now()->toDateTimeString('µ'));
         $st->execute();

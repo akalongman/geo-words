@@ -249,7 +249,7 @@ class CrawlCommand extends Command
                 $this->database->updateCrawlerRecord(
                     $this->database->getCrawlId($this->crawlProject, $request->getUri()),
                     Database::CRAWL_STATUS_ERRORED,
-                    0,
+                    $response ? $response->getStatusCode() : 0,
                     $exception ? $exception->getMessage() : 'unknown'
                 );
 

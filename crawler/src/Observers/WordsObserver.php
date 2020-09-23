@@ -65,7 +65,12 @@ class WordsObserver extends BaseCrawlObserver
         $this->output->writeln('<info>URL:</info> <comment>' . (string) $url . '</comment>');
         if (! $response) {
             $this->output->writeln('<error>Response is empty</error>');
-            $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0, 'Response is empty');
+            $this->database->updateCrawlerRecord(
+                $this->database->getCrawlId($this->crawlProject, $url),
+                Database::CRAWL_STATUS_ERRORED,
+                0,
+                'Response is empty'
+            );
 
             return;
         }
@@ -82,7 +87,7 @@ class WordsObserver extends BaseCrawlObserver
                 break;
         }
 
-        $this->process($url, $content);
+        $this->process($url, $response, $content);
     }
 
     public function finishedCrawling(): void
@@ -97,7 +102,12 @@ class WordsObserver extends BaseCrawlObserver
 
     public function crawlFailed(UriInterface $url, RequestException $requestException, ?UriInterface $foundOnUrl = null): void
     {
-        $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_ERRORED, 0, $requestException->getMessage());
+        $this->database->updateCrawlerRecord(
+            $this->database->getCrawlId($this->crawlProject, $url),
+            Database::CRAWL_STATUS_ERRORED,
+            0,
+            $requestException->getMessage()
+        );
         $this->logger->error('Crawl request failed', [
             'url'       => (string) $url,
             'exception' => $requestException,
@@ -113,7 +123,7 @@ class WordsObserver extends BaseCrawlObserver
         $this->output->writeln('- - -');
     }
 
-    private function process(UriInterface $url, string $content): void
+    private function process(UriInterface $url, ResponseInterface $response, string $content): void
     {
         $words = $this->parseGeorgianWords($content);
 
@@ -124,7 +134,12 @@ class WordsObserver extends BaseCrawlObserver
         $this->output->writeln('<info>Time:</info> <comment>' . $this->getMeasuredTimeAsString() . '</comment>');
         $this->output->writeln('- - -');
 
-        $this->database->updateCrawlerRecord($this->database->getCrawlId($this->crawlProject, $url), Database::CRAWL_STATUS_PROCESSED, count($words), '');
+        $this->database->updateCrawlerRecord(
+            $this->database->getCrawlId($this->crawlProject, $url),
+            Database::CRAWL_STATUS_PROCESSED,
+            $response->getStatusCode(),
+            null
+        );
     }
 
     private function getContentsFromPdf(UriInterface $url): string
