@@ -16,7 +16,6 @@ use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use function count;
 use function curl_close;
 use function curl_exec;
 use function curl_getinfo;
