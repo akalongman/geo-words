@@ -107,7 +107,7 @@ class ErrorsObserver extends BaseCrawlObserver
         $this->database->updateCrawlerRecord(
             $this->database->getCrawlId($this->crawlProject, $url),
             Database::CRAWL_STATUS_ERRORED,
-            null,
+            $requestException->hasResponse() ? $requestException->getResponse()->getStatusCode() : null,
             $requestException->getMessage()
         );
         $this->logger->error('Crawl request failed', [
