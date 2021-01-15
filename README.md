@@ -49,9 +49,9 @@ Will be crawled links, where url's domain ends with `.ge` suffix
 ### Crawl links with `subset` profile
 This command will crawl all urls if link starts with `--subset`
 
-    php cmd crawl --project-name="My Project" --profile=subset --subset="http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46" "http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46"
+    php cmd crawl --project-name="My Project" --profile=subset --subset="http://www.nplg.gov.ge/gwdict/index.php?a=list&d=1" "http://www.nplg.gov.ge/gwdict/index.php?a=list&d=1"
 
-Will be crawled links, where url starts with `www.nplg.gov.ge/gwdict/index.php?a=list&d=46` prefix
+Will be crawled links, where url starts with `http://www.nplg.gov.ge/gwdict/index.php?a=list&d=1` prefix
 
 ### Continue project
 You can continue stopped project by command
