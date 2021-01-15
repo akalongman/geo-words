@@ -33,22 +33,24 @@ class Database
         $this->db = $this->createDatabaseConnection($config);
     }
 
-    public function createCrawlProject(string $name = 'crawl'): Project
+    public function createCrawlProject(string $name, string $url): Project
     {
         $now = Carbon::now();
         $st = $this->db->prepare('INSERT INTO `projects`
-                (`name`, `created_at`)
+                (`name`, `url`, `created_at`)
                 VALUES
-                (:name, :created_at);
+                (:name, :url, :created_at);
             ');
 
-        $st->bindValue(':name', $name . ': ' . mt_rand(1, 1000));
+        $st->bindValue(':name', $name);
+        $st->bindValue(':url', $url);
         $st->bindValue(':created_at', $now->toDateTimeString('µ'));
         $st->execute();
 
         $project = new Project(
             (int) $this->db->lastInsertId(),
             $name,
+            $url,
             $now->toDateTimeString('µ')
         );
 

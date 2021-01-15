@@ -21,8 +21,8 @@ use Longman\Crawler\Observers\WordsObserver;
 use Longman\Crawler\Profiles\DomainCrawlProfile;
 use Longman\Crawler\Profiles\UrlSubsetProfile;
 use Psr\Log\LoggerInterface;
-use Spatie\Crawler\CrawlProfiles\CrawlAllUrls;
 use Spatie\Crawler\Crawler;
+use Spatie\Crawler\CrawlProfiles\CrawlAllUrls;
 use Spatie\Crawler\CrawlProfiles\CrawlInternalUrls;
 use Spatie\Crawler\CrawlQueues\ArrayCrawlQueue;
 use Symfony\Component\Console\Command\Command;
@@ -34,6 +34,7 @@ use Throwable;
 
 use function container;
 use function intval;
+use function mt_rand;
 use function sprintf;
 
 use const PHP_EOL;
@@ -68,6 +69,7 @@ class CrawlCommand extends Command
             ->setHelp('This command allows to crawl given url')
             ->addArgument('url', InputArgument::REQUIRED, 'The website url for crawling. If url contains &, entire url should be wrapped by quotes (")')
             ->addOption('concurrency', 'c', InputOption::VALUE_OPTIONAL, 'The concurrency (default: ' . self::CONCURRENCY_DEFAULT . ')')
+            ->addOption('project-name', 'pn', InputOption::VALUE_OPTIONAL, 'The project name for new project')
             ->addOption('project-id', 'P', InputOption::VALUE_OPTIONAL, 'The project ID for continue')
             ->addOption('profile', 'p', InputOption::VALUE_OPTIONAL, 'The crawling profile. Values are: '
                 . PHP_EOL . self::PROFILE_INTERNAL . ' (default) - this profile will only crawl the internal urls on the pages of a host.'
@@ -95,10 +97,17 @@ class CrawlCommand extends Command
         $queue = $input->getOption('queue');
         $observer = $input->getOption('observer');
         $projectId = (int) $input->getOption('project-id');
+        $projectName = $input->getOption('project-name');
 
         $output->writeln('<info>Start crawling of:</info> <comment>' . $url . '</comment>');
+        if (empty($projectName)) {
+            $projectName = 'crawl: ' . mt_rand(100, 999);
+        } else {
+            $output->writeln('<info>Project Name:</info> <comment>' . $projectName . '</comment>');
+        }
         $output->writeln('<info>Concurrency:</info> <comment>' . $concurrency . '</comment>');
         $output->writeln('<info>Profile:</info> <comment>' . ($profile ?? self::PROFILE_INTERNAL) . '</comment>');
+
 
         $httpClient = $this->createHttpClient();
 
@@ -115,7 +124,7 @@ class CrawlCommand extends Command
         $this->logger = $container->get(LoggerInterface::class);
 
         if (! $projectId) {
-            $this->crawlProject = $this->database->createCrawlProject($url);
+            $this->crawlProject = $this->database->createCrawlProject($projectName, $url);
         } else {
             $this->crawlProject = $this->database->getCrawlProject($projectId);
         }
