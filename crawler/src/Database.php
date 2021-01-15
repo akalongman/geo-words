@@ -12,7 +12,6 @@ use Psr\Http\Message\UriInterface;
 
 use function hash;
 use function implode;
-use function mt_rand;
 use function trim;
 
 class Database
