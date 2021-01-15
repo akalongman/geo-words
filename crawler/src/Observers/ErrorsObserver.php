@@ -11,7 +11,7 @@ use Longman\Crawler\Entities\Project;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
-use Spatie\Crawler\CrawlObserver as BaseCrawlObserver;
+use Spatie\Crawler\CrawlObservers\CrawlObserver as BaseCrawlObserver;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

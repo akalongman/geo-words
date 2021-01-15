@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Longman\Crawler\Profiles;
 
 use Psr\Http\Message\UriInterface;
-use Spatie\Crawler\CrawlProfile as BaseCrawlProfile;
+use Spatie\Crawler\CrawlProfiles\CrawlProfile as BaseCrawlProfile;
 
 use function strpos;
 

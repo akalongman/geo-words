@@ -171,7 +171,7 @@ class Database
         $values = [];
         $inserts = [];
         foreach ($words as $word) {
-            $values[] = '(?, ?, ?, ?, ?, ?)';
+            $values[] = '(?, ?, ?, ?, ?)';
             $inserts[] = trim($word);
             $inserts[] = $projectId;
             $inserts[] = $crawlId;

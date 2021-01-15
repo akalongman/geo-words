@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Longman\Crawler\CrawlQueues;
 
 use Longman\Crawler\Database;
-use Spatie\Crawler\CrawlQueue\CrawlQueue;
+use Spatie\Crawler\CrawlQueues\CrawlQueue;
 use Spatie\Crawler\CrawlUrl;
-use Spatie\Crawler\Exception\UrlNotFoundByIndex;
+use Spatie\Crawler\Exceptions\UrlNotFoundByIndex;
 
 use function serialize;
 use function unserialize;

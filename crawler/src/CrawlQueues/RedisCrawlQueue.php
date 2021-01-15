@@ -6,10 +6,10 @@ namespace Longman\Crawler\CrawlQueues;
 
 use Psr\Http\Message\UriInterface;
 use Redis;
-use Spatie\Crawler\CrawlQueue\CrawlQueue;
+use Spatie\Crawler\CrawlQueues\CrawlQueue;
 use Spatie\Crawler\CrawlUrl;
-use Spatie\Crawler\Exception\InvalidUrl;
-use Spatie\Crawler\Exception\UrlNotFoundByIndex;
+use Spatie\Crawler\Exceptions\InvalidUrl;
+use Spatie\Crawler\Exceptions\UrlNotFoundByIndex;
 
 use function is_null;
 use function is_string;
