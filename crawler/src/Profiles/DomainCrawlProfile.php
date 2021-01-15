@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Longman\Crawler\Profiles;
 
+use Illuminate\Support\Str;
 use Psr\Http\Message\UriInterface;
 use Spatie\Crawler\CrawlProfiles\CrawlProfile as BaseCrawlProfile;
 
@@ -20,6 +21,6 @@ class DomainCrawlProfile extends BaseCrawlProfile
 
     public function shouldCrawl(UriInterface $url): bool
     {
-        return substr($url->getHost(), -2) === $this->domain;
+        return substr($url->getHost(), -Str::length($this->domain)) === $this->domain;
     }
 }

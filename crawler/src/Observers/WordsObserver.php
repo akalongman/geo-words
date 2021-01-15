@@ -43,6 +43,8 @@ class WordsObserver extends BaseCrawlObserver
         LoggerInterface $logger,
         Project $crawlProject
     ) {
+        $this->startTime = $this->getMicroTime();
+        $this->startMemory = $this->getMemoryUsage();
         $this->output = $output;
         $this->input = $input;
         $this->database = $database;
