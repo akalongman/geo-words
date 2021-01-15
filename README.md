@@ -32,27 +32,31 @@ And run migrations:
 ### Crawl links with `internal` profile
 This command will crawl urls only inside specified domain and ignore external urls
 
-    php cmd crawl --profile=internal "http://www.nplg.gov.ge/gwdict/index.php"
+    php cmd crawl --project-name="My Project" --profile=internal "http://www.nplg.gov.ge/gwdict/index.php"
 
 ### Crawl links with `all` profile
 This command will crawl all links
 
-    php cmd crawl --profile=all "http://www.nplg.gov.ge/gwdict/index.php"
+    php cmd crawl --project-name="My Project" --profile=all "http://www.nplg.gov.ge/gwdict/index.php"
 
 ### Crawl links with `domain` profile
 This command will crawl links with all domains, which end with `--domain`
 
-    php cmd crawl --profile=domain --domain=.ge "http://www.nplg.gov.ge/gwdict/index.php"
+    php cmd crawl --project-name="My Project" --profile=domain --domain=.ge "http://www.nplg.gov.ge/gwdict/index.php"
 
 Will be crawled links, where url's domain ends with `.ge` suffix
 
 ### Crawl links with `subset` profile
 This command will crawl all urls if link starts with `--subset`
 
-    php cmd crawl --profile=subset --subset="http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46" "http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46"
+    php cmd crawl --project-name="My Project" --profile=subset --subset="http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46" "http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46"
 
 Will be crawled links, where url starts with `www.nplg.gov.ge/gwdict/index.php?a=list&d=46` prefix
 
+### Continue project
+You can continue stopped project by command
+
+    php cmd crawl --project-id={id}
 
 Show all possible options: `php cmd help crawl`
 
