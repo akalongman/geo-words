@@ -15,9 +15,9 @@ Download in:
 
 Crawler is written on PHP and uses MySQL as a database. Code placed under `crawler` folder.
 
-Before running the script should be configured database and run migrations. 
+Before running the script should be configured the database and run migrations. 
 
-First of all rename the file `.env.example` to `.env` and specify database credentials.
+First rename the file `.env.example` to `.env` and specify database credentials.
 
 Install composer dependencies:
 
@@ -27,9 +27,34 @@ And run migrations:
 
     composer migrate  
 
-Usage: `php cmd crawl "http://www.nplg.gov.ge/gwdict/index.php"`
+## Usage 
 
-Help for options: `php cmd help crawl`
+### Crawl links with `internal` profile
+This command will crawl urls only inside specified domain and ignore external urls
+
+    php cmd crawl --profile=internal "http://www.nplg.gov.ge/gwdict/index.php"
+
+### Crawl links with `all` profile
+This command will crawl all links
+
+    php cmd crawl --profile=all "http://www.nplg.gov.ge/gwdict/index.php"
+
+### Crawl links with `domain` profile
+This command will crawl links with all domains, which end with `--domain`
+
+    php cmd crawl --profile=domain --domain=.ge "http://www.nplg.gov.ge/gwdict/index.php"
+
+Will be crawled links, where url's domain ends with `.ge` suffix
+
+### Crawl links with `subset` profile
+This command will crawl all urls if link starts with `--subset`
+
+    php cmd crawl --profile=subset --subset="http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46" "http://www.nplg.gov.ge/gwdict/index.php?a=list&d=46"
+
+Will be crawled links, where url starts with `www.nplg.gov.ge/gwdict/index.php?a=list&d=46` prefix
+
+
+Show all possible options: `php cmd help crawl`
 
 ## TODO
 
